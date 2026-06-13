@@ -24,7 +24,6 @@ import {
   ShieldCheck,
   Sparkles,
   Upload,
-  UserRound,
   Users,
 } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
