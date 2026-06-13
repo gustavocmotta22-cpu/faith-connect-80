@@ -98,7 +98,7 @@ async function getStartManifest(matchedRoutes) {
 const manifest = {
   "23762cf4884d3884089b1eb2eb0c3bf4edfca9d0fdbb01581c18b8d9fbd54c9f": {
     functionName: "getTodayDevotional_createServerFn_handler",
-    importer: () => import("./devotional.functions-90AxXHGe.js")
+    importer: () => import("./devotional.functions-CFni2hh_.js")
   }
 };
 async function getServerFnById(id, access) {
@@ -1339,8 +1339,8 @@ var getBaseManifest = getProdBaseManifest;
 var createEarlyHintsForRequest = createEarlyHintsCollector;
 async function loadEntries() {
   const [routerEntry, startEntry, pluginAdapters] = await Promise.all([
-    import("./router-BJOs4YyQ.js").then((n) => n.r),
-    import("./start-BQ1r90So.js"),
+    import("./router-DUMfC8-U.js").then((n) => n.r),
+    import("./start-D3lcjvdl.js"),
     import("./empty-plugin-adapters-BFgPZ6_d.js")
   ]);
   return {
