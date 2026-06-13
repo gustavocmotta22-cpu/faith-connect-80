@@ -64,26 +64,26 @@
   --color-gold: var(--gold);
   --color-gold-soft: var(--gold-soft);
   --color-success: var(--success);
-  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "DM Serif Display", Georgia, serif;
+  --font-sans: "Figtree", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit", ui-sans-serif, system-ui, sans-serif;
   --shadow-pastoral: var(--shadow-pastoral);
 }
 
 :root {
   --radius: 0.875rem;
-  --background: oklch(0.977 0.008 95);
-  --foreground: oklch(0.235 0.035 157);
-  --card: oklch(0.998 0.002 95);
+  --background: oklch(0.973 0.015 88);
+  --foreground: oklch(0.224 0.043 157);
+  --card: oklch(0.995 0.006 88);
   --card-foreground: oklch(0.235 0.035 157);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.374 0.091 157);
+  --primary: oklch(0.382 0.104 160);
   --primary-foreground: oklch(0.987 0.005 95);
-  --secondary: oklch(0.925 0.025 151);
+  --secondary: oklch(0.921 0.047 153);
   --secondary-foreground: oklch(0.294 0.065 157);
   --muted: oklch(0.946 0.012 105);
   --muted-foreground: oklch(0.505 0.025 155);
-  --accent: oklch(0.773 0.106 76);
+  --accent: oklch(0.724 0.111 81);
   --accent-foreground: oklch(0.245 0.045 65);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.984 0.003 247.858);
@@ -157,6 +157,8 @@
     font-family: var(--font-sans);
     min-width: 320px;
     -webkit-font-smoothing: antialiased;
+    font-size: 17px;
+    line-height: 1.6;
   }
 
   button, a, input, textarea, select { -webkit-tap-highlight-color: transparent; }
