@@ -270,7 +270,76 @@ export function FiladelfiaApp() {
   return <main className="min-h-screen bg-background pb-24"><header className="pastoral-gradient rounded-b-[2rem] px-5 pb-8 pt-9 text-primary-foreground"><div className="mx-auto max-w-3xl"><div className="flex items-center justify-between"><Brand compact /><Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary-foreground/10" onClick={() => supabase.auth.signOut()} aria-label="Sair"><LogOut /></Button></div>{tab === "home" && <><p className="mt-8 text-sm text-primary-foreground/65">Olá, {profile.full_name.split(" ")[0]}</p><h1 className="mt-1 font-display text-3xl">Paz seja com você.</h1></>}{tab !== "home" && <h1 className="mt-8 font-display text-3xl">{tab === "cultos" ? "Cultos" : tab === "community" ? "Comunidade" : tab === "library" ? "Biblioteca" : "Mais"}</h1>}</div></header><div className="mx-auto max-w-3xl">{tab === "home" && <HomeView nextCult={nextCult} content={content} setDetail={setDetail} setTab={setTab} />}{tab === "cultos" && <CultosView />}{tab === "community" && <CommunityView societies={societies} />}{tab === "library" && <LibraryView items={books} signedUrls={signedUrls} isAdmin={isAdmin} session={session} reload={reload} />}{tab === "more" && <MoreView isAdmin={isAdmin} setDetail={setDetail} signOut={() => supabase.auth.signOut()} />}</div><nav aria-label="Navegação principal" className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-3xl border-t bg-card/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur"><div className="grid grid-cols-5">{([{ id: "home", label: "Início", icon: Home }, { id: "cultos", label: "Cultos", icon: Church }, { id: "community", label: "Comunidade", icon: Users }, { id: "library", label: "Livros", icon: Library }, { id: "more", label: "Mais", icon: Menu }] as const).map(({ id, label, icon: Icon }) => <Button key={id} variant="ghost" className={tab === id ? "h-14 flex-col gap-1 rounded-xl text-primary" : "h-14 flex-col gap-1 rounded-xl text-muted-foreground"} onClick={() => { setTab(id); setDetail(null); }}><Icon className="size-5" /><span className="text-[10px]">{label}</span></Button>)}</div></nav></main>;
 }
 
-function PrayerView({ session }: { session: Session }) { const [subject, setSubject] = useState(""); const [message, setMessage] = useState(""); const [status, setStatus] = useState(""); async function submit(e: FormEvent) { e.preventDefault(); const r = await supabase.from("prayer_requests").insert({ requester_id: session.user.id, subject: subject.trim(), message: message.trim(), is_private: true }); setStatus(r.error?.message || "Pedido enviado. Estaremos orando por você."); if (!r.error) { setSubject(""); setMessage(""); } } return <form onSubmit={submit} className="mx-auto max-w-3xl space-y-4 px-5 py-6"><blockquote className="rounded-2xl bg-secondary p-5 font-display text-lg leading-7 text-secondary-foreground">“Em tudo sejam os vossos pedidos conhecidos diante de Deus.”<footer className="mt-2 font-sans text-xs font-bold">Filipenses 4:6</footer></blockquote><div className="space-y-2"><Label htmlFor="prayer-subject">Assunto</Label><Input id="prayer-subject" required minLength={3} maxLength={160} value={subject} onChange={(e) => setSubject(e.target.value)} /></div><div className="space-y-2"><Label htmlFor="prayer-message">Seu pedido</Label><Textarea id="prayer-message" required minLength={5} maxLength={3000} className="min-h-36" value={message} onChange={(e) => setMessage(e.target.value)} /></div>{status && <Message text={status} />}<Button size="touch"><HeartHandshake />Enviar pedido</Button></form>; }
+function PrayerView({ session, profile, publicPrayers, reload }: { session: Session; profile: Profile; publicPrayers: PrayerPublication[]; reload: () => Promise<void> }) {
+  const [subject, setSubject] = useState("");
+  const [message, setMessage] = useState("");
+  const [phone, setPhone] = useState("");
+  const [isPublic, setIsPublic] = useState(true);
+  const [showName, setShowName] = useState(true);
+  const [directedTo, setDirectedTo] = useState<"conselho" | "pastor" | "igreja">("conselho");
+  const [status, setStatus] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function submit(e: FormEvent) {
+    e.preventDefault();
+    const cleanSubject = subject.trim();
+    const cleanMessage = message.trim();
+    const cleanPhone = phone.replace(/[^0-9+()\-\s]/g, "").trim();
+    if (cleanSubject.length < 3 || cleanMessage.length < 5) return setStatus("Escreva o assunto e o pedido de oração.");
+    if (cleanPhone && cleanPhone.replace(/\D/g, "").length < 8) return setStatus("Confira o telefone ou deixe o campo vazio.");
+    setBusy(true);
+    setStatus("");
+    const saved = await supabase.from("prayer_requests").insert({
+      requester_id: session.user.id,
+      requester_name: showName ? profile.full_name : null,
+      subject: cleanSubject,
+      message: cleanMessage,
+      is_private: !isPublic,
+      publication_status: isPublic ? "published" : "private",
+      directed_to: directedTo,
+      contact_phone: cleanPhone || null,
+      contact_authorized: Boolean(cleanPhone),
+    });
+    setBusy(false);
+    if (saved.error) return setStatus("Não foi possível enviar agora. Tente novamente.");
+
+    const destination = directedTo === "pastor" ? "Pastor" : directedTo === "igreja" ? "Igreja" : "Conselho";
+    const whatsappText = [
+      "*Novo pedido de oração — Filadélfia Conecta*",
+      `Destino: ${destination}`,
+      `Nome: ${showName ? profile.full_name : "Não informado"}`,
+      `Assunto: ${cleanSubject}`,
+      `Pedido: ${cleanMessage}`,
+      `Telefone para contato: ${cleanPhone || "Não compartilhado"}`,
+      `Visibilidade: ${isPublic ? "Público no mural de oração" : "Reservado"}`,
+    ].join("\n");
+    setSubject("");
+    setMessage("");
+    setPhone("");
+    setStatus("Pedido registrado. O WhatsApp será aberto para encaminhamento ao cuidado pastoral.");
+    await reload();
+    window.open(`https://wa.me/5521987361216?text=${encodeURIComponent(whatsappText)}`, "_blank", "noopener,noreferrer");
+  }
+
+  return <div className="mx-auto max-w-3xl space-y-8 px-5 py-6">
+    <form onSubmit={submit} className="space-y-5">
+      <blockquote className="rounded-2xl bg-secondary p-5 font-display text-lg leading-7 text-secondary-foreground">“Em tudo sejam os vossos pedidos conhecidos diante de Deus.”<footer className="mt-2 font-sans text-xs font-bold">Filipenses 4:6</footer></blockquote>
+      <div className="space-y-2"><Label htmlFor="prayer-subject">Assunto</Label><Input id="prayer-subject" required minLength={3} maxLength={160} value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Por quem ou pelo que devemos orar?" /></div>
+      <div className="space-y-2"><Label htmlFor="prayer-message">Seu pedido</Label><Textarea id="prayer-message" required minLength={5} maxLength={3000} className="min-h-36" value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Escreva aqui seu pedido de oração..." /></div>
+
+      <fieldset className="space-y-3"><legend className="text-sm font-bold">Quem deve receber este pedido?</legend><div className="grid grid-cols-1 gap-2 sm:grid-cols-3">{([ ["conselho", "Conselho"], ["pastor", "Pastor"], ["igreja", "Toda a igreja"] ] as const).map(([value, label]) => <Button key={value} type="button" variant={directedTo === value ? "default" : "outline"} onClick={() => setDirectedTo(value)}>{label}</Button>)}</div></fieldset>
+
+      <fieldset className="rounded-2xl border bg-card p-4"><legend className="px-1 text-sm font-bold">Este pedido pode aparecer no mural?</legend><div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2"><Button type="button" variant={isPublic ? "default" : "outline"} onClick={() => setIsPublic(true)}>Sim, pedido público</Button><Button type="button" variant={!isPublic ? "default" : "outline"} onClick={() => setIsPublic(false)}>Não, pedido reservado</Button></div>{isPublic && <label className="mt-4 flex items-center gap-3 text-sm"><Checkbox checked={showName} onCheckedChange={(value) => setShowName(value === true)} /><span>Mostrar meu nome junto ao pedido público</span></label>}<p className="mt-3 text-xs leading-5 text-muted-foreground">Seu telefone nunca será publicado no mural.</p></fieldset>
+
+      <div className="space-y-2 rounded-2xl bg-gold-soft p-4"><Label htmlFor="prayer-phone">Telefone para contato (opcional)</Label><p className="text-sm leading-6 text-accent-foreground">Deseja compartilhar seu telefone para que as pessoas responsáveis entrem em contato, conversem e orem pessoalmente com você?</p><Input id="prayer-phone" type="tel" inputMode="tel" maxLength={24} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(21) 99999-9999 — opcional" /><p className="text-xs text-accent-foreground">Deixe em branco se não desejar receber contato.</p></div>
+
+      {status && <Message text={status} danger={status.startsWith("Não") || status.startsWith("Confira") || status.startsWith("Escreva")} />}
+      <Button size="touch" className="w-full" disabled={busy}>{busy ? <Loader2 className="animate-spin" /> : <HeartHandshake />}{busy ? "Enviando..." : "Enviar pedido de oração"}</Button>
+    </form>
+
+    <section aria-labelledby="prayer-wall-title"><div className="mb-4"><p className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">Comunidade em oração</p><h2 id="prayer-wall-title" className="font-display text-3xl font-bold text-primary">Pedidos públicos</h2><p className="mt-1 text-sm text-muted-foreground">Ore por uma necessidade específica da nossa comunidade.</p></div><div className="space-y-3">{publicPrayers.length === 0 ? <Message text="Ainda não há pedidos públicos. Você pode ser a primeira pessoa a compartilhar." /> : publicPrayers.map((prayer) => <article key={prayer.prayer_request_id} className="rounded-2xl border bg-card p-5 shadow-sm"><div className="flex items-start justify-between gap-3"><div><h3 className="font-bold text-primary">{prayer.subject}</h3><p className="text-xs text-muted-foreground">{prayer.requester_name}</p></div><span className="shrink-0 rounded-full bg-secondary px-3 py-1 text-xs font-bold text-secondary-foreground">🙏 Orando</span></div><p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">{prayer.message}</p></article>)}</div></section>
+  </div>;
+}
 
 function HomeView({ nextCult, content, setDetail, setTab }: { nextCult: { day: string; time: string; title: string }; content: ChurchContent[]; setDetail: (d: Detail) => void; setTab: (t: Tab) => void }) { const actions = [{ label: "Pedido de Oração", description: "Compartilhe seu pedido", icon: HeartHandshake, go: () => setDetail("prayer") }, { label: "Aniversariantes", description: "Celebre com a comunidade", icon: Gift, go: () => setDetail("birthdays") }, { label: "Aconteceu e Foi Bom", description: "Veja nossas memórias", icon: Images, go: () => setDetail("gallery") }, { label: "Ação Social", description: "Conheça o Talentos do Reino", icon: Sparkles, go: () => setDetail("social") }, { label: "Localização", description: "Encontre nossa igreja", icon: MapPin, go: () => setDetail("location") }, { label: "Sociedades", description: "Participe dos grupos", icon: Users, go: () => setTab("community") }]; return <div className="px-5 py-6"><section className="rounded-3xl bg-forest-deep p-6 text-primary-foreground shadow-pastoral"><p className="text-sm font-bold uppercase tracking-[0.14em] text-primary-foreground/70">Próximo culto</p><div className="mt-4 grid gap-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end"><div className="min-w-0"><h2 className="font-display text-3xl font-bold">{nextCult.title}</h2><p className="mt-2 text-base text-primary-foreground/80">{nextCult.day} · {nextCult.time}</p></div><Button variant="hero" size="touch" onClick={() => setTab("cultos")}>Ver cultos</Button></div></section><h2 className="mb-4 mt-8 text-sm font-bold uppercase tracking-[0.14em] text-muted-foreground">Acesso rápido</h2><div className="space-y-3">{actions.map(({ label, description, icon: Icon, go }) => <Button key={label} variant="outline" onClick={go} className="grid h-auto min-h-20 w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 whitespace-normal rounded-2xl border-2 bg-card p-4 text-left shadow-sm"><span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-secondary text-primary"><Icon className="size-6" /></span><span className="min-w-0"><span className="block text-lg font-bold leading-6">{label}</span><span className="block text-base font-normal leading-6 text-muted-foreground">{description}</span></span><ChevronRight className="shrink-0 text-primary" /></Button>)}</div><section className="mt-8"><div className="flex items-center justify-between"><h2 className="text-sm font-bold uppercase tracking-[0.14em] text-muted-foreground">Avisos recentes</h2><Bell className="size-5 text-primary" /></div><div className="mt-4 space-y-3">{content.filter((c) => c.content_type === "notice").slice(0, 3).map((c) => <article key={c.id} className="rounded-2xl border-2 bg-card p-5"><h3 className="text-lg font-bold">{c.title}</h3><p className="mt-2 line-clamp-3 text-base leading-7 text-muted-foreground">{c.body || c.summary}</p></article>)}{content.filter((c) => c.content_type === "notice").length === 0 && <Message text="Nenhum aviso publicado no momento." />}</div></section></div>; }
 
