@@ -85,6 +85,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:description", content: "Comunidade digital da Igreja Presbiteriana Filadélfia." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Filadélfia Conecta" },
+      { name: "twitter:description", content: "Comunidade digital da Igreja Presbiteriana Filadélfia." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/df39b4f0-603c-4200-871e-887ad4ed9c5c/id-preview-891f1796--f22f7921-ac90-4c2e-a786-4792c856758c.lovable.app-1781320010323.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/df39b4f0-603c-4200-871e-887ad4ed9c5c/id-preview-891f1796--f22f7921-ac90-4c2e-a786-4792c856758c.lovable.app-1781320010323.png" },
     ],
     links: [
       {
