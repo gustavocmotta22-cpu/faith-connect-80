@@ -32,6 +32,7 @@ import { lovable } from "@/integrations/lovable";
 import type { Tables } from "@/integrations/supabase/types";
 import { ensureChurchAdminRole } from "@/lib/admin.functions";
 import logoAsset from "@/assets/ipf-logo.jpg.asset.json";
+import socialActionAsset from "@/assets/talentos-do-reino.jpg.asset.json";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -222,7 +223,7 @@ function Onboarding({ session, onDone }: { session: Session; onDone: (profile: P
 }
 
 function PageHeader({ title, subtitle, onBack }: { title: string; subtitle?: string; onBack: () => void }) {
-  return <header className="pastoral-gradient px-5 pb-7 pt-10 text-primary-foreground"><div className="mx-auto max-w-3xl"><Button variant="ghost" size="sm" onClick={onBack} className="mb-5 -ml-2 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground">← Voltar</Button><h1 className="font-display text-3xl">{title}</h1>{subtitle && <p className="mt-2 text-sm text-primary-foreground/70">{subtitle}</p>}</div></header>;
+  return <header className="pastoral-gradient px-5 pb-8 pt-8 text-primary-foreground shadow-pastoral"><div className="mx-auto max-w-3xl"><Button variant="ghost" size="sm" onClick={onBack} className="mb-5 -ml-2 text-base text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground">← Voltar</Button><h1 className="font-display text-4xl font-bold tracking-tight">{title}</h1>{subtitle && <p className="mt-2 text-base text-primary-foreground/80">{subtitle}</p>}</div></header>;
 }
 
 function BirthdayView({ items, signedUrls }: { items: Birthday[]; signedUrls: Record<string, string> }) {
