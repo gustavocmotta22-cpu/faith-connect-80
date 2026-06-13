@@ -152,31 +152,81 @@ export type Database = {
         }
         Relationships: []
       }
-      prayer_requests: {
+      prayer_publications: {
         Row: {
           created_at: string
-          id: string
-          is_private: boolean
           message: string
-          requester_id: string
+          prayer_request_id: string
+          requester_name: string
           subject: string
           updated_at: string
         }
         Insert: {
           created_at?: string
-          id?: string
-          is_private?: boolean
           message: string
-          requester_id: string
+          prayer_request_id: string
+          requester_name?: string
           subject: string
           updated_at?: string
         }
         Update: {
           created_at?: string
+          message?: string
+          prayer_request_id?: string
+          requester_name?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prayer_publications_prayer_request_id_fkey"
+            columns: ["prayer_request_id"]
+            isOneToOne: true
+            referencedRelation: "prayer_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prayer_requests: {
+        Row: {
+          contact_authorized: boolean
+          contact_phone: string | null
+          created_at: string
+          directed_to: string
+          id: string
+          is_private: boolean
+          message: string
+          publication_status: string
+          requester_id: string
+          requester_name: string | null
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          contact_authorized?: boolean
+          contact_phone?: string | null
+          created_at?: string
+          directed_to?: string
+          id?: string
+          is_private?: boolean
+          message: string
+          publication_status?: string
+          requester_id: string
+          requester_name?: string | null
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          contact_authorized?: boolean
+          contact_phone?: string | null
+          created_at?: string
+          directed_to?: string
           id?: string
           is_private?: boolean
           message?: string
+          publication_status?: string
           requester_id?: string
+          requester_name?: string | null
           subject?: string
           updated_at?: string
         }
