@@ -152,6 +152,41 @@ export type Database = {
         }
         Relationships: []
       }
+      prayer_publications: {
+        Row: {
+          created_at: string
+          message: string
+          prayer_request_id: string
+          requester_name: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          message: string
+          prayer_request_id: string
+          requester_name?: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          message?: string
+          prayer_request_id?: string
+          requester_name?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prayer_publications_prayer_request_id_fkey"
+            columns: ["prayer_request_id"]
+            isOneToOne: true
+            referencedRelation: "prayer_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       prayer_requests: {
         Row: {
           contact_authorized: boolean
@@ -304,16 +339,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_public_prayer_requests: {
-        Args: never
-        Returns: {
-          created_at: string
-          id: string
-          message: string
-          requester_name: string
-          subject: string
-        }[]
-      }
+      [_ in never]: never
     }
     Enums: {
       app_role: "admin"
