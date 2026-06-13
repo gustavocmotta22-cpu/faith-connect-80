@@ -17,6 +17,36 @@ const GeneratedDevotionalSchema = z.object({
   prayer: z.string().min(2).max(5000),
 });
 
+const araFallbackVerses = [
+  { book: { name: "Salmos" }, chapter: 46, number: 1, text: "Deus é o nosso refúgio e fortaleza, socorro bem-presente nas tribulações." },
+  { book: { name: "Salmos" }, chapter: 119, number: 105, text: "Lâmpada para os meus pés é a tua palavra e, luz para os meus caminhos." },
+  { book: { name: "Provérbios" }, chapter: 3, number: 5, text: "Confia no SENHOR de todo o teu coração e não te estribes no teu próprio entendimento." },
+  { book: { name: "Isaías" }, chapter: 41, number: 10, text: "Não temas, porque eu sou contigo; não te assombres, porque eu sou o teu Deus; eu te fortaleço, e te ajudo, e te sustento com a minha destra fiel." },
+  { book: { name: "Mateus" }, chapter: 11, number: 28, text: "Vinde a mim, todos os que estais cansados e sobrecarregados, e eu vos aliviarei." },
+  { book: { name: "Romanos" }, chapter: 8, number: 28, text: "Sabemos que todas as coisas cooperam para o bem daqueles que amam a Deus, daqueles que são chamados segundo o seu propósito." },
+  { book: { name: "Filipenses" }, chapter: 4, number: 6, text: "Não andeis ansiosos de coisa alguma; em tudo, porém, sejam conhecidas, diante de Deus, as vossas petições, pela oração e pela súplica, com ações de graças." },
+  { book: { name: "1 Pedro" }, chapter: 5, number: 7, text: "Lançando sobre ele toda a vossa ansiedade, porque ele tem cuidado de vós." },
+] satisfies Array<z.infer<typeof BibleVerseSchema>>;
+
+function fallbackVerseForDate(date: string) {
+  const dateSeed = Number(date.replaceAll("-", ""));
+  return araFallbackVerses[dateSeed % araFallbackVerses.length];
+}
+
+async function fetchAraVerse(today: string) {
+  try {
+    const verseResponse = await fetch("https://www.abibliadigital.com.br/api/verses/ara/random", {
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!verseResponse.ok) return fallbackVerseForDate(today);
+    const parsed = BibleVerseSchema.safeParse(await verseResponse.json());
+    return parsed.success ? parsed.data : fallbackVerseForDate(today);
+  } catch {
+    return fallbackVerseForDate(today);
+  }
+}
+
 export const getTodayDevotional = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -35,11 +65,7 @@ export const getTodayDevotional = createServerFn({ method: "POST" })
     if (existing.error) throw new Error("Não foi possível consultar o devocional de hoje.");
     if (existing.data) return existing.data;
 
-    const verseResponse = await fetch("https://www.abibliadigital.com.br/api/verses/ara/random", {
-      headers: { Accept: "application/json" },
-    });
-    if (!verseResponse.ok) throw new Error("A fonte bíblica está temporariamente indisponível. Tente novamente em instantes.");
-    const verse = BibleVerseSchema.parse(await verseResponse.json());
+    const verse = await fetchAraVerse(today);
     const reference = `${verse.book.name} ${verse.chapter}:${verse.number}`;
 
     const key = process.env.LOVABLE_API_KEY;
