@@ -272,7 +272,7 @@ const Route$1 = createFileRoute("/sitemap.xml")({
     }
   }
 });
-const $$splitComponentImporter = () => import("./index-hMEnKT2N.js");
+const $$splitComponentImporter = () => import("./index-CLuQpR4b.js");
 const Route = createFileRoute("/")({
   head: () => ({
     meta: [{
