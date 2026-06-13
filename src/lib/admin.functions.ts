@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-const ADMIN_EMAILS = new Set(["admin@filadelfia.app", "pastor@filadelfia.app"]);
+const ADMIN_EMAILS = new Set(["adm_filadelfiaconecta@gmail.com"]);
 
 export const ensureChurchAdminRole = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
