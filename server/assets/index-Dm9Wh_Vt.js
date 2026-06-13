@@ -1,19 +1,45 @@
 import { jsx, jsxs, Fragment } from "react/jsx-runtime";
 import * as React from "react";
 import { useState, useEffect, useMemo, useRef } from "react";
-import { Check, Loader2, LogOut, Home, Church, Users, Library, Menu, LockKeyhole, HeartHandshake, Camera, Images, ShieldCheck, Upload, MessageCircle, UserRound, Gift, CheckCircle2, Plus, BookOpen, CalendarDays, Bell, Sparkles, MapPin, Download, ChevronRight } from "lucide-react";
+import { Check, Loader2, Camera, Pencil, Plus, Trash2, Sparkles, LogOut, Home, Church, Users, Library, Menu, LockKeyhole, HeartHandshake, Images, ShieldCheck, Upload, MessageCircle, UserRound, Gift, CheckCircle2, BookOpen, CalendarDays, Bell, MapPin, Download, ChevronRight } from "lucide-react";
 import { s as supabase } from "./client-ycPsap7o.js";
 import { createLovableAuth } from "@lovable.dev/cloud-auth-js";
-import { c as cn, B as Button } from "./router-drL0Y-lb.js";
+import { c as cn, B as Button } from "./router-DvN_tFEX.js";
 import * as LabelPrimitive from "@radix-ui/react-label";
 import { cva } from "class-variance-authority";
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
+import { useRouter, isRedirect } from "@tanstack/react-router";
+import { T as TSS_SERVER_FUNCTION, g as getServerFnById, a as createServerFn } from "./server--HvE20L6.js";
+import { r as requireSupabaseAuth } from "./auth-middleware-DsHTmBA0.js";
 import "@supabase/supabase-js";
 import "@tanstack/react-query";
-import "@tanstack/react-router";
 import "@radix-ui/react-slot";
 import "clsx";
 import "tailwind-merge";
+import "node:async_hooks";
+import "h3-v2";
+import "@tanstack/router-core";
+import "seroval";
+import "@tanstack/history";
+import "@tanstack/router-core/ssr/client";
+import "@tanstack/router-core/ssr/server";
+import "@tanstack/react-router/ssr/server";
+function useServerFn(serverFn) {
+  const router = useRouter();
+  return React.useCallback(async (...args) => {
+    try {
+      const res = await serverFn(...args);
+      if (isRedirect(res)) throw res;
+      return res;
+    } catch (err) {
+      if (isRedirect(err)) {
+        err.options._fromLocation = router.stores.location.get();
+        return router.navigate(router.resolveRedirect(err).options);
+      }
+      throw err;
+    }
+  }, [router, serverFn]);
+}
 const lovableAuth = createLovableAuth();
 const lovable = {
   auth: {
@@ -98,6 +124,240 @@ const Checkbox = React.forwardRef(({ className, ...props }, ref) => /* @__PURE__
   }
 ));
 Checkbox.displayName = CheckboxPrimitive.Root.displayName;
+var createSsrRpc = (functionId) => {
+  const url2 = "/_serverFn/" + functionId;
+  const serverFnMeta = { id: functionId };
+  const fn = async (...args) => {
+    return (await getServerFnById(functionId))(...args);
+  };
+  return Object.assign(fn, {
+    url: url2,
+    serverFnMeta,
+    [TSS_SERVER_FUNCTION]: true
+  });
+};
+const getTodayDevotional = createServerFn({
+  method: "POST"
+}).middleware([requireSupabaseAuth]).handler(createSsrRpc("23762cf4884d3884089b1eb2eb0c3bf4edfca9d0fdbb01581c18b8d9fbd54c9f"));
+function formatDate(date) {
+  return new Intl.DateTimeFormat("pt-BR", { dateStyle: "full", timeZone: "UTC" }).format(/* @__PURE__ */ new Date(`${date}T12:00:00Z`));
+}
+function wrapText(context, text, maxWidth) {
+  const words = text.split(/\s+/);
+  const lines = [];
+  let line = "";
+  for (const word of words) {
+    const next = line ? `${line} ${word}` : word;
+    if (context.measureText(next).width > maxWidth && line) {
+      lines.push(line);
+      line = word;
+    } else line = next;
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+async function shareImage(item) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1080;
+  canvas.height = 1350;
+  const context = canvas.getContext("2d");
+  if (!context) return;
+  const gradient = context.createLinearGradient(0, 0, 1080, 1350);
+  gradient.addColorStop(0, "#123f31");
+  gradient.addColorStop(1, "#28664d");
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, 1080, 1350);
+  context.fillStyle = "#e9c978";
+  context.font = "700 28px sans-serif";
+  context.fillText("DEVOCIONAL DO DIA · ARA", 80, 100);
+  context.fillStyle = "#ffffff";
+  context.font = "700 64px serif";
+  let y = 190;
+  for (const line of wrapText(context, item.title, 920).slice(0, 3)) {
+    context.fillText(line, 80, y);
+    y += 76;
+  }
+  context.fillStyle = "#f8f2df";
+  context.font = "italic 38px serif";
+  y += 35;
+  for (const line of wrapText(context, `“${item.verse_text}”`, 920).slice(0, 8)) {
+    context.fillText(line, 80, y);
+    y += 54;
+  }
+  context.fillStyle = "#e9c978";
+  context.font = "700 34px sans-serif";
+  context.fillText(`${item.verse_reference} · ARA`, 80, y + 20);
+  context.fillStyle = "#ffffff";
+  context.font = "700 30px sans-serif";
+  context.fillText("IGREJA PRESBITERIANA FILADÉLFIA", 80, 1260);
+  const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+  if (!blob) return;
+  const file = new File([blob], `devocional-${item.devotional_date}.png`, { type: "image/png" });
+  if (navigator.share && navigator.canShare?.({ files: [file] })) await navigator.share({ title: item.title, files: [file] });
+  else {
+    const url2 = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url2;
+    link.download = file.name;
+    link.click();
+    URL.revokeObjectURL(url2);
+  }
+}
+function DevotionalView() {
+  const fetchToday = useServerFn(getTodayDevotional);
+  const [item, setItem] = useState(null);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    fetchToday().then(setItem).catch((reason) => setError(reason instanceof Error ? reason.message : "Não foi possível carregar o devocional."));
+  }, [fetchToday]);
+  if (error) return /* @__PURE__ */ jsx("div", { className: "mx-auto max-w-3xl px-5 py-6", children: /* @__PURE__ */ jsx("div", { className: "rounded-2xl bg-destructive/10 p-4 text-sm text-destructive", children: error }) });
+  if (!item) return /* @__PURE__ */ jsx("div", { className: "grid min-h-72 place-items-center", children: /* @__PURE__ */ jsxs("div", { className: "text-center", children: [
+    /* @__PURE__ */ jsx(Loader2, { className: "mx-auto animate-spin text-primary" }),
+    /* @__PURE__ */ jsx("p", { className: "mt-3 text-sm text-muted-foreground", children: "Preparando o devocional de hoje..." })
+  ] }) });
+  return /* @__PURE__ */ jsxs("div", { className: "mx-auto max-w-3xl space-y-4 px-5 py-6", children: [
+    /* @__PURE__ */ jsxs("article", { className: "overflow-hidden rounded-3xl border bg-card shadow-pastoral", children: [
+      /* @__PURE__ */ jsxs("header", { className: "pastoral-gradient p-6 text-primary-foreground", children: [
+        /* @__PURE__ */ jsx("p", { className: "text-xs font-bold uppercase tracking-[0.16em] text-primary-foreground/70", children: formatDate(item.devotional_date) }),
+        /* @__PURE__ */ jsx("h2", { className: "mt-3 font-display text-3xl font-bold leading-tight", children: item.title }),
+        /* @__PURE__ */ jsxs("blockquote", { className: "mt-5 border-l-4 border-gold pl-4 text-lg italic leading-8", children: [
+          "“",
+          item.verse_text,
+          "”"
+        ] }),
+        /* @__PURE__ */ jsxs("p", { className: "mt-3 font-bold text-gold-soft", children: [
+          item.verse_reference,
+          " · ARA"
+        ] })
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "space-y-4 p-5", children: [
+        /* @__PURE__ */ jsxs("section", { className: "rounded-2xl bg-muted p-5", children: [
+          /* @__PURE__ */ jsx("h3", { className: "font-display text-xl font-bold text-primary", children: "📚 Reflexão" }),
+          /* @__PURE__ */ jsx("p", { className: "mt-2 whitespace-pre-wrap leading-7 text-muted-foreground", children: item.reflection })
+        ] }),
+        /* @__PURE__ */ jsxs("section", { className: "rounded-2xl bg-gold-soft p-5", children: [
+          /* @__PURE__ */ jsx("h3", { className: "font-display text-xl font-bold text-accent-foreground", children: "✋ Aplicação" }),
+          /* @__PURE__ */ jsx("p", { className: "mt-2 whitespace-pre-wrap leading-7 text-accent-foreground", children: item.application })
+        ] }),
+        /* @__PURE__ */ jsxs("section", { className: "rounded-2xl bg-secondary p-5", children: [
+          /* @__PURE__ */ jsx("h3", { className: "font-display text-xl font-bold text-primary", children: "🙏 Oração" }),
+          /* @__PURE__ */ jsx("p", { className: "mt-2 whitespace-pre-wrap italic leading-7 text-secondary-foreground", children: item.prayer || "Senhor, aplica esta Palavra ao nosso coração e guia nossos passos neste dia. Amém." })
+        ] }),
+        item.author && /* @__PURE__ */ jsx("p", { className: "text-right text-xs text-muted-foreground", children: item.author })
+      ] })
+    ] }),
+    /* @__PURE__ */ jsxs(Button, { size: "touch", className: "w-full", onClick: () => shareImage(item), children: [
+      /* @__PURE__ */ jsx(Camera, {}),
+      "📸 Compartilhar como Imagem"
+    ] })
+  ] });
+}
+const emptyForm = { devotional_date: "", title: "", verse_text: "", verse_reference: "", reflection: "", application: "", prayer: "", author: "" };
+function AdminDevotionals({ items, session, reload }) {
+  const [form, setForm] = useState(emptyForm);
+  const [editingId, setEditingId] = useState(null);
+  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
+  function field(name) {
+    return { value: form[name], onChange: (event) => setForm((current) => ({ ...current, [name]: event.target.value })) };
+  }
+  async function save(event) {
+    event.preventDefault();
+    setBusy(true);
+    const payload = { ...form, prayer: form.prayer.trim() || null, author: form.author.trim() || null, bible_version: "ARA", source: "admin", created_by: session.user.id };
+    const result = editingId ? await supabase.from("devotionals").update(payload).eq("id", editingId) : await supabase.from("devotionals").insert(payload);
+    setBusy(false);
+    setMessage(result.error?.message || "Devocional salvo com sucesso.");
+    if (!result.error) {
+      setForm(emptyForm);
+      setEditingId(null);
+      await reload();
+    }
+  }
+  function edit(item) {
+    setEditingId(item.id);
+    setForm({ devotional_date: item.devotional_date, title: item.title, verse_text: item.verse_text, verse_reference: item.verse_reference, reflection: item.reflection, application: item.application, prayer: item.prayer || "", author: item.author || "" });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  async function remove(id) {
+    if (!window.confirm("Excluir este devocional?")) return;
+    const result = await supabase.from("devotionals").delete().eq("id", id);
+    setMessage(result.error?.message || "Devocional excluído.");
+    await reload();
+  }
+  return /* @__PURE__ */ jsxs("section", { className: "space-y-5", children: [
+    /* @__PURE__ */ jsxs("div", { children: [
+      /* @__PURE__ */ jsx("h2", { className: "font-display text-2xl font-bold", children: "Admin · Devocionais" }),
+      /* @__PURE__ */ jsx("p", { className: "text-sm text-muted-foreground", children: "Todo versículo deve ser copiado da versão ARA." })
+    ] }),
+    /* @__PURE__ */ jsxs("form", { onSubmit: save, className: "space-y-4 rounded-2xl border bg-card p-4", children: [
+      /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
+        /* @__PURE__ */ jsx(Label, { htmlFor: "dev-date", children: "Data *" }),
+        /* @__PURE__ */ jsx(Input, { id: "dev-date", type: "date", required: true, ...field("devotional_date") })
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
+        /* @__PURE__ */ jsx(Label, { htmlFor: "dev-title", children: "Título *" }),
+        /* @__PURE__ */ jsx(Input, { id: "dev-title", required: true, minLength: 2, maxLength: 160, ...field("title") })
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
+        /* @__PURE__ */ jsx(Label, { htmlFor: "dev-verse", children: "Versículo ARA *" }),
+        /* @__PURE__ */ jsx(Textarea, { id: "dev-verse", required: true, maxLength: 2e3, ...field("verse_text") })
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
+        /* @__PURE__ */ jsx(Label, { htmlFor: "dev-ref", children: "Referência *" }),
+        /* @__PURE__ */ jsx(Input, { id: "dev-ref", required: true, maxLength: 120, placeholder: "Ex.: João 3:16", ...field("verse_reference") })
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
+        /* @__PURE__ */ jsx(Label, { htmlFor: "dev-reflection", children: "Reflexão *" }),
+        /* @__PURE__ */ jsx(Textarea, { id: "dev-reflection", required: true, maxLength: 1e4, className: "min-h-32", ...field("reflection") })
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
+        /* @__PURE__ */ jsx(Label, { htmlFor: "dev-application", children: "Aplicação *" }),
+        /* @__PURE__ */ jsx(Textarea, { id: "dev-application", required: true, maxLength: 5e3, ...field("application") })
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
+        /* @__PURE__ */ jsx(Label, { htmlFor: "dev-prayer", children: "Oração (opcional)" }),
+        /* @__PURE__ */ jsx(Textarea, { id: "dev-prayer", maxLength: 5e3, ...field("prayer") })
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
+        /* @__PURE__ */ jsx(Label, { htmlFor: "dev-author", children: "Autor (opcional)" }),
+        /* @__PURE__ */ jsx(Input, { id: "dev-author", maxLength: 160, ...field("author") })
+      ] }),
+      message && /* @__PURE__ */ jsx("p", { className: "rounded-xl bg-secondary p-3 text-sm", children: message }),
+      /* @__PURE__ */ jsxs("div", { className: "flex gap-2", children: [
+        /* @__PURE__ */ jsxs(Button, { disabled: busy, children: [
+          busy ? /* @__PURE__ */ jsx(Loader2, { className: "animate-spin" }) : editingId ? /* @__PURE__ */ jsx(Pencil, {}) : /* @__PURE__ */ jsx(Plus, {}),
+          editingId ? "Salvar alterações" : "Cadastrar devocional"
+        ] }),
+        editingId && /* @__PURE__ */ jsx(Button, { type: "button", variant: "outline", onClick: () => {
+          setEditingId(null);
+          setForm(emptyForm);
+        }, children: "Cancelar" })
+      ] })
+    ] }),
+    /* @__PURE__ */ jsxs("div", { children: [
+      /* @__PURE__ */ jsx("h3", { className: "mb-3 font-display text-xl font-bold", children: "30 mais recentes" }),
+      /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
+        items.slice(0, 30).map((item) => /* @__PURE__ */ jsxs("article", { className: "flex items-center gap-3 rounded-2xl border bg-card p-4", children: [
+          /* @__PURE__ */ jsxs("div", { className: "min-w-0 flex-1", children: [
+            /* @__PURE__ */ jsx("p", { className: "font-bold", children: item.title }),
+            /* @__PURE__ */ jsxs("p", { className: "text-xs text-muted-foreground", children: [
+              formatDate(item.devotional_date),
+              " · ",
+              item.source === "admin" ? "ADM" : "Gemini"
+            ] })
+          ] }),
+          /* @__PURE__ */ jsx(Button, { type: "button", variant: "outline", size: "icon", onClick: () => edit(item), "aria-label": `Editar ${item.title}`, children: /* @__PURE__ */ jsx(Pencil, {}) }),
+          /* @__PURE__ */ jsx(Button, { type: "button", variant: "destructive", size: "icon", onClick: () => remove(item.id), "aria-label": `Excluir ${item.title}`, children: /* @__PURE__ */ jsx(Trash2, {}) })
+        ] }, item.id)),
+        items.length === 0 && /* @__PURE__ */ jsxs("p", { className: "rounded-xl bg-muted p-3 text-sm text-muted-foreground", children: [
+          /* @__PURE__ */ jsx(Sparkles, { className: "mr-2 inline size-4" }),
+          "Nenhum devocional cadastrado."
+        ] })
+      ] })
+    ] })
+  ] });
+}
 const schedules = [
   ["Domingo", "09h00", "Culto de Adoração"],
   ["Domingo", "10h15", "Escola Bíblica Dominical"],
@@ -478,7 +738,7 @@ function LibraryView({ items, signedUrls, isAdmin, session, reload }) {
     /* @__PURE__ */ jsx("p", { className: "mt-5 text-xs leading-5 text-muted-foreground", children: "Os títulos originais são oferecidos por repositório externo gratuito. A administração deve confirmar os direitos antes de adicionar novos PDFs." })
   ] });
 }
-function AdminView({ profiles, gallery, societies, session, reload }) {
+function AdminView({ profiles, gallery, societies, devotionals, session, reload }) {
   const [message, setMessage] = useState("");
   const [contentType, setContentType] = useState("notice");
   const [title, setTitle] = useState("");
@@ -510,6 +770,7 @@ function AdminView({ profiles, gallery, societies, session, reload }) {
   }
   return /* @__PURE__ */ jsxs("div", { className: "mx-auto max-w-3xl space-y-7 px-5 py-6", children: [
     message && /* @__PURE__ */ jsx(Message, { text: message }),
+    /* @__PURE__ */ jsx(AdminDevotionals, { items: devotionals, session, reload }),
     /* @__PURE__ */ jsxs("section", { children: [
       /* @__PURE__ */ jsx("h2", { className: "mb-3 font-display text-2xl", children: "Membros aguardando confirmação" }),
       /* @__PURE__ */ jsx("div", { className: "space-y-2", children: profiles.filter((p) => p.person_kind === "member" && p.membership_status === "pending").map((p) => /* @__PURE__ */ jsxs("div", { className: "rounded-2xl border bg-card p-4", children: [
@@ -566,7 +827,6 @@ function AdminView({ profiles, gallery, societies, session, reload }) {
         /* @__PURE__ */ jsxs("select", { "aria-label": "Tipo de conteúdo", className: "h-11 w-full rounded-xl border bg-background px-3 text-sm", value: contentType, onChange: (e) => setContentType(e.target.value), children: [
           /* @__PURE__ */ jsx("option", { value: "notice", children: "Aviso" }),
           /* @__PURE__ */ jsx("option", { value: "event", children: "Agenda" }),
-          /* @__PURE__ */ jsx("option", { value: "devotional", children: "Devocional" }),
           /* @__PURE__ */ jsx("option", { value: "liturgy", children: "Liturgia" }),
           /* @__PURE__ */ jsx("option", { value: "social_action", children: "Ação social" }),
           /* @__PURE__ */ jsx("option", { value: "about", children: "Quem somos" })
@@ -593,11 +853,12 @@ function FiladelfiaApp() {
   const [books, setBooks] = useState([]);
   const [societies, setSocieties] = useState([]);
   const [content, setContent] = useState([]);
+  const [devotionals, setDevotionals] = useState([]);
   const [publicPrayers, setPublicPrayers] = useState([]);
   const [profiles, setProfiles] = useState([]);
   const [signedUrls, setSignedUrls] = useState({});
   async function loadData(userId) {
-    const [p, role, b, g, l, s, c, prayers] = await Promise.all([supabase.from("profiles").select("*").eq("id", userId).maybeSingle(), supabase.from("user_roles").select("role").eq("user_id", userId).maybeSingle(), supabase.from("birthday_directory").select("*").order("birth_date"), supabase.from("gallery_items").select("*").order("created_at", { ascending: false }), supabase.from("library_items").select("*").order("created_at", { ascending: false }), supabase.from("society_groups").select("*").order("acronym"), supabase.from("church_content").select("*").order("created_at", { ascending: false }), supabase.from("prayer_publications").select("*").order("created_at", { ascending: false })]);
+    const [p, role, b, g, l, s, c, d, prayers] = await Promise.all([supabase.from("profiles").select("*").eq("id", userId).maybeSingle(), supabase.from("user_roles").select("role").eq("user_id", userId).maybeSingle(), supabase.from("birthday_directory").select("*").order("birth_date"), supabase.from("gallery_items").select("*").order("created_at", { ascending: false }), supabase.from("library_items").select("*").order("created_at", { ascending: false }), supabase.from("society_groups").select("*").order("acronym"), supabase.from("church_content").select("*").order("created_at", { ascending: false }), supabase.from("devotionals").select("*").order("devotional_date", { ascending: false }).limit(30), supabase.from("prayer_publications").select("*").order("created_at", { ascending: false })]);
     setProfile(p.data);
     setIsAdmin(role.data?.role === "admin");
     setBirthdays(b.data || []);
@@ -605,6 +866,7 @@ function FiladelfiaApp() {
     setBooks(l.data || []);
     setSocieties(s.data || []);
     setContent(c.data || []);
+    setDevotionals(d.data || []);
     setPublicPrayers(prayers.data || []);
     if (role.data?.role === "admin") {
       const all = await supabase.from("profiles").select("*").order("created_at", { ascending: false });
@@ -647,13 +909,13 @@ function FiladelfiaApp() {
   } });
   const reload = () => loadData(session.user.id);
   if (detail) return /* @__PURE__ */ jsxs("main", { className: "min-h-screen bg-background pb-10", children: [
-    /* @__PURE__ */ jsx(PageHeader, { title: detail === "birthdays" ? "Aniversariantes" : detail === "gallery" ? "Aconteceu e Foi Bom" : detail === "prayer" ? "Pedidos de Oração" : detail === "social" ? "Ação Social" : detail === "location" ? "Como chegar" : detail === "pastor" ? "Fale com o Pastor" : detail === "council" ? "Fale com o Conselho" : detail === "devotional" ? "Devocional" : detail === "agenda" ? "Agenda" : detail === "notices" ? "Avisos" : detail === "offering" ? "Dízimos e Ofertas" : "Central Administrativa", subtitle: detail === "gallery" ? "Memórias que testemunham a graça de Deus" : detail === "social" ? "Uma igreja em movimento, servindo ao próximo" : void 0, onBack: () => setDetail(null) }),
+    /* @__PURE__ */ jsx(PageHeader, { title: detail === "birthdays" ? "Aniversariantes" : detail === "gallery" ? "Aconteceu e Foi Bom" : detail === "prayer" ? "Pedidos de Oração" : detail === "social" ? "Ação Social" : detail === "location" ? "Como chegar" : detail === "pastor" ? "Fale com o Pastor" : detail === "council" ? "Fale com o Conselho" : detail === "devotional" ? "Devocional do Dia" : detail === "agenda" ? "Agenda" : detail === "notices" ? "Avisos" : detail === "offering" ? "Dízimos e Ofertas" : "Central Administrativa", subtitle: detail === "gallery" ? "Memórias que testemunham a graça de Deus" : detail === "social" ? "Uma igreja em movimento, servindo ao próximo" : void 0, onBack: () => setDetail(null) }),
     detail === "birthdays" && /* @__PURE__ */ jsx(BirthdayView, { items: birthdays, signedUrls }),
     detail === "gallery" && /* @__PURE__ */ jsx(GalleryView, { profile, session, items: gallery, signedUrls, reload }),
     detail === "prayer" && /* @__PURE__ */ jsx(PrayerView, { session, profile, publicPrayers, reload }),
     detail === "pastor" && /* @__PURE__ */ jsx(ContactView, { title: "Rev. Rafael", description: "Converse com o pastor para aconselhamento, cuidado espiritual ou oração." }),
     detail === "council" && /* @__PURE__ */ jsx(CouncilView, {}),
-    detail === "devotional" && /* @__PURE__ */ jsx(ContentView, { type: "devotional", empty: "Nenhum devocional publicado no momento.", content }),
+    detail === "devotional" && /* @__PURE__ */ jsx(DevotionalView, {}),
     detail === "agenda" && /* @__PURE__ */ jsx(ContentView, { type: "event", empty: "Nenhum evento publicado no momento.", content }),
     detail === "notices" && /* @__PURE__ */ jsx(ContentView, { type: "notice", empty: "Nenhum aviso publicado no momento.", content }),
     detail === "offering" && /* @__PURE__ */ jsx(OfferingView, {}),
@@ -694,7 +956,7 @@ function FiladelfiaApp() {
         /* @__PURE__ */ jsx(Button, { asChild: true, className: "mt-4", children: /* @__PURE__ */ jsx("a", { href: "https://www.google.com/maps/search/?api=1&query=Rua+Vicente+de+Lima+Cleto+250+São+Gonçalo+RJ", target: "_blank", rel: "noreferrer", children: "Abrir no mapa" }) })
       ] })
     ] }) }),
-    detail === "admin" && isAdmin && /* @__PURE__ */ jsx(AdminView, { profiles, gallery, societies, session, reload })
+    detail === "admin" && isAdmin && /* @__PURE__ */ jsx(AdminView, { profiles, gallery, societies, devotionals, session, reload })
   ] });
   return /* @__PURE__ */ jsxs("main", { className: "min-h-screen bg-background pb-24", children: [
     /* @__PURE__ */ jsx("header", { className: "pastoral-gradient rounded-b-[2rem] px-5 pb-8 pt-9 text-primary-foreground", children: /* @__PURE__ */ jsxs("div", { className: "mx-auto max-w-3xl", children: [
