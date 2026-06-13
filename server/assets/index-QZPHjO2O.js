@@ -1,11 +1,11 @@
 import { jsx, jsxs, Fragment } from "react/jsx-runtime";
 import * as React from "react";
 import { useState, useEffect, useMemo, useRef } from "react";
-import { Check, Loader2, LogOut, Home, Church, Users, Library, Menu, LockKeyhole, HeartHandshake, Camera, Images, ShieldCheck, Upload, CheckCircle2, Plus, Gift, Sparkles, MapPin, Bell, MessageCircle, BookOpen, Download, ChevronRight } from "lucide-react";
+import { Check, Loader2, LogOut, Home, Church, Users, Library, Menu, LockKeyhole, HeartHandshake, Camera, Images, ShieldCheck, Upload, CheckCircle2, Plus, Gift, Sparkles, MapPin, ChevronRight, Bell, MessageCircle, BookOpen, Download } from "lucide-react";
 import { s as supabase } from "./client-ycPsap7o.js";
 import { createLovableAuth } from "@lovable.dev/cloud-auth-js";
-import { T as TSS_SERVER_FUNCTION, g as getServerFnById, a as createServerFn } from "./server-BJn107hw.js";
-import { r as requireSupabaseAuth } from "./auth-middleware-DD1C1al7.js";
+import { T as TSS_SERVER_FUNCTION, g as getServerFnById, a as createServerFn } from "./server-B_YbzyOC.js";
+import { r as requireSupabaseAuth } from "./auth-middleware-ChtW2zEX.js";
 import { Slot } from "@radix-ui/react-slot";
 import { cva } from "class-variance-authority";
 import { clsx } from "clsx";
@@ -62,8 +62,12 @@ var createSsrRpc = (functionId) => {
 const ensureChurchAdminRole = createServerFn({
   method: "POST"
 }).middleware([requireSupabaseAuth]).handler(createSsrRpc("482160fb7da9422a30997d8d1edf5b0380db76c51a523de7ff71d0b08feeace3"));
-const url = "/__l5e/assets-v1/dd9aa310-1325-4147-b635-25cf525f18be/ipf-logo.jpg";
+const url$1 = "/__l5e/assets-v1/dd9aa310-1325-4147-b635-25cf525f18be/ipf-logo.jpg";
 const logoAsset = {
+  url: url$1
+};
+const url = "/__l5e/assets-v1/6ccb30b0-df65-48d7-b2bd-8cbcee81fefd/talentos-do-reino.jpg";
+const socialActionAsset = {
   url
 };
 function cn(...inputs) {
@@ -399,10 +403,10 @@ function Onboarding({ session, onDone }) {
   ] });
 }
 function PageHeader({ title, subtitle, onBack }) {
-  return /* @__PURE__ */ jsx("header", { className: "pastoral-gradient px-5 pb-7 pt-10 text-primary-foreground", children: /* @__PURE__ */ jsxs("div", { className: "mx-auto max-w-3xl", children: [
-    /* @__PURE__ */ jsx(Button, { variant: "ghost", size: "sm", onClick: onBack, className: "mb-5 -ml-2 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground", children: "← Voltar" }),
-    /* @__PURE__ */ jsx("h1", { className: "font-display text-3xl", children: title }),
-    subtitle && /* @__PURE__ */ jsx("p", { className: "mt-2 text-sm text-primary-foreground/70", children: subtitle })
+  return /* @__PURE__ */ jsx("header", { className: "pastoral-gradient px-5 pb-8 pt-8 text-primary-foreground shadow-pastoral", children: /* @__PURE__ */ jsxs("div", { className: "mx-auto max-w-3xl", children: [
+    /* @__PURE__ */ jsx(Button, { variant: "ghost", size: "sm", onClick: onBack, className: "mb-5 -ml-2 text-base text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground", children: "← Voltar" }),
+    /* @__PURE__ */ jsx("h1", { className: "font-display text-4xl font-bold tracking-tight", children: title }),
+    subtitle && /* @__PURE__ */ jsx("p", { className: "mt-2 text-base text-primary-foreground/80", children: subtitle })
   ] }) });
 }
 function BirthdayView({ items, signedUrls }) {
@@ -703,19 +707,39 @@ function FiladelfiaApp() {
   } });
   const reload = () => loadData(session.user.id);
   if (detail) return /* @__PURE__ */ jsxs("main", { className: "min-h-screen bg-background pb-10", children: [
-    /* @__PURE__ */ jsx(PageHeader, { title: detail === "birthdays" ? "Aniversariantes" : detail === "gallery" ? "Aconteceu e Foi Bom" : detail === "prayer" ? "Pedido de Oração" : detail === "social" ? "Talentos do Reino" : detail === "location" ? "Como chegar" : "Central Administrativa", subtitle: detail === "gallery" ? "Memórias que testemunham a graça de Deus" : void 0, onBack: () => setDetail(null) }),
+    /* @__PURE__ */ jsx(PageHeader, { title: detail === "birthdays" ? "Aniversariantes" : detail === "gallery" ? "Aconteceu e Foi Bom" : detail === "prayer" ? "Pedido de Oração" : detail === "social" ? "Ação Social" : detail === "location" ? "Como chegar" : "Central Administrativa", subtitle: detail === "gallery" ? "Memórias que testemunham a graça de Deus" : detail === "social" ? "Uma igreja em movimento, servindo ao próximo" : void 0, onBack: () => setDetail(null) }),
     detail === "birthdays" && /* @__PURE__ */ jsx(BirthdayView, { items: birthdays, signedUrls }),
     detail === "gallery" && /* @__PURE__ */ jsx(GalleryView, { profile, session, items: gallery, signedUrls, reload }),
     detail === "prayer" && /* @__PURE__ */ jsx(PrayerView, { session }),
-    detail === "social" && /* @__PURE__ */ jsx("div", { className: "mx-auto max-w-3xl px-5 py-6", children: /* @__PURE__ */ jsxs("div", { className: "rounded-3xl bg-card p-6 shadow-pastoral", children: [
-      /* @__PURE__ */ jsx("div", { className: "mb-4 grid size-14 place-items-center rounded-2xl bg-secondary text-2xl", children: "🧵" }),
-      /* @__PURE__ */ jsx("h2", { className: "font-display text-2xl", children: "Curso de corte e costura" }),
-      /* @__PURE__ */ jsxs("p", { className: "mt-3 leading-7 text-muted-foreground", children: [
-        "Para maiores informações sobre o curso, compareça à igreja na ",
-        /* @__PURE__ */ jsx("strong", { className: "text-foreground", children: "terça-feira, às 17h" }),
-        ", e procure a irmã Patrícia ou o irmão Eduardo."
+    detail === "social" && /* @__PURE__ */ jsxs("div", { className: "mx-auto max-w-3xl space-y-5 px-5 py-6", children: [
+      /* @__PURE__ */ jsxs("article", { className: "overflow-hidden rounded-3xl border bg-card shadow-pastoral", children: [
+        /* @__PURE__ */ jsx("img", { src: socialActionAsset.url, alt: "Curso de costura e modelagem para iniciantes — Talentos do Reino", className: "aspect-[3/2] w-full object-cover" }),
+        /* @__PURE__ */ jsxs("div", { className: "p-5 sm:p-7", children: [
+          /* @__PURE__ */ jsx("span", { className: "inline-flex rounded-full bg-gold-soft px-3 py-1 text-sm font-bold text-accent-foreground", children: "Projeto em destaque" }),
+          /* @__PURE__ */ jsx("h2", { className: "mt-4 font-display text-3xl font-bold text-primary", children: "Talentos do Reino" }),
+          /* @__PURE__ */ jsx("p", { className: "mt-3 text-lg leading-8 text-muted-foreground", children: "Curso de costura e modelagem para iniciantes, com proposta evangelística, social e de inserção no mercado de trabalho." })
+        ] })
+      ] }),
+      /* @__PURE__ */ jsxs("article", { className: "rounded-3xl border-2 border-primary/20 bg-card p-5 shadow-sm sm:p-7", children: [
+        /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-4", children: [
+          /* @__PURE__ */ jsx("div", { className: "grid size-14 shrink-0 place-items-center rounded-2xl bg-secondary text-2xl", children: "✂️" }),
+          /* @__PURE__ */ jsxs("div", { className: "min-w-0", children: [
+            /* @__PURE__ */ jsx("h2", { className: "font-display text-2xl font-bold text-primary", children: "Curso de corte e costura" }),
+            /* @__PURE__ */ jsx("p", { className: "text-base text-muted-foreground", children: "Coordenação: Irmã Patrícia" })
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxs("p", { className: "mt-5 text-lg leading-8 text-muted-foreground", children: [
+          "O projeto ",
+          /* @__PURE__ */ jsx("strong", { className: "text-primary", children: "Talentos do Reino" }),
+          " é uma iniciativa da IPF que oferece curso de costura básica para mulheres da comunidade, com duplo objetivo: evangelístico e social, proporcionando qualificação profissional."
+        ] }),
+        /* @__PURE__ */ jsx("blockquote", { className: "mt-5 rounded-2xl border-l-4 border-primary bg-secondary/50 p-5 text-lg italic leading-8 text-primary", children: "“Uma igreja, uma pessoa — glorificar a Deus transformando vidas através do serviço ao próximo.”" }),
+        /* @__PURE__ */ jsxs("div", { className: "mt-5 rounded-2xl bg-gold-soft p-4 text-base leading-7 text-accent-foreground", children: [
+          /* @__PURE__ */ jsx("strong", { children: "Mais informações:" }),
+          " compareça à igreja na terça-feira, às 17h, e procure a irmã Patrícia ou o irmão Eduardo."
+        ] })
       ] })
-    ] }) }),
+    ] }),
     detail === "location" && /* @__PURE__ */ jsx("div", { className: "mx-auto max-w-3xl px-5 py-6", children: /* @__PURE__ */ jsxs("div", { className: "overflow-hidden rounded-3xl border bg-card", children: [
       /* @__PURE__ */ jsx("iframe", { title: "Mapa da Igreja Presbiteriana Filadélfia", className: "h-64 w-full border-0", src: "https://maps.google.com/maps?q=Rua+Vicente+de+Lima+Cleto,+250,+Nova+Cidade,+São+Gonçalo,+RJ&output=embed&z=15", loading: "lazy" }),
       /* @__PURE__ */ jsxs("div", { className: "p-5", children: [
@@ -791,36 +815,40 @@ function PrayerView({ session }) {
   ] });
 }
 function HomeView({ nextCult, content, setDetail, setTab }) {
-  const actions = [{ label: "Pedido de Oração", icon: HeartHandshake, go: () => setDetail("prayer") }, { label: "Aniversariantes", icon: Gift, go: () => setDetail("birthdays") }, { label: "Aconteceu e Foi Bom", icon: Images, go: () => setDetail("gallery") }, { label: "Ação Social", icon: Sparkles, go: () => setDetail("social") }, { label: "Localização", icon: MapPin, go: () => setDetail("location") }, { label: "Sociedades", icon: Users, go: () => setTab("community") }];
+  const actions = [{ label: "Pedido de Oração", description: "Compartilhe seu pedido", icon: HeartHandshake, go: () => setDetail("prayer") }, { label: "Aniversariantes", description: "Celebre com a comunidade", icon: Gift, go: () => setDetail("birthdays") }, { label: "Aconteceu e Foi Bom", description: "Veja nossas memórias", icon: Images, go: () => setDetail("gallery") }, { label: "Ação Social", description: "Conheça o Talentos do Reino", icon: Sparkles, go: () => setDetail("social") }, { label: "Localização", description: "Encontre nossa igreja", icon: MapPin, go: () => setDetail("location") }, { label: "Sociedades", description: "Participe dos grupos", icon: Users, go: () => setTab("community") }];
   return /* @__PURE__ */ jsxs("div", { className: "px-5 py-6", children: [
-    /* @__PURE__ */ jsxs("section", { className: "rounded-3xl bg-forest-deep p-5 text-primary-foreground shadow-pastoral", children: [
-      /* @__PURE__ */ jsx("p", { className: "text-xs font-bold uppercase tracking-[0.18em] text-primary-foreground/55", children: "Próximo culto" }),
-      /* @__PURE__ */ jsxs("div", { className: "mt-4 flex items-end justify-between gap-4", children: [
-        /* @__PURE__ */ jsxs("div", { children: [
-          /* @__PURE__ */ jsx("h2", { className: "font-display text-2xl", children: nextCult.title }),
-          /* @__PURE__ */ jsxs("p", { className: "mt-1 text-sm text-primary-foreground/70", children: [
+    /* @__PURE__ */ jsxs("section", { className: "rounded-3xl bg-forest-deep p-6 text-primary-foreground shadow-pastoral", children: [
+      /* @__PURE__ */ jsx("p", { className: "text-sm font-bold uppercase tracking-[0.14em] text-primary-foreground/70", children: "Próximo culto" }),
+      /* @__PURE__ */ jsxs("div", { className: "mt-4 grid gap-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end", children: [
+        /* @__PURE__ */ jsxs("div", { className: "min-w-0", children: [
+          /* @__PURE__ */ jsx("h2", { className: "font-display text-3xl font-bold", children: nextCult.title }),
+          /* @__PURE__ */ jsxs("p", { className: "mt-2 text-base text-primary-foreground/80", children: [
             nextCult.day,
             " · ",
             nextCult.time
           ] })
         ] }),
-        /* @__PURE__ */ jsx(Button, { variant: "hero", size: "sm", onClick: () => setTab("cultos"), children: "Ver cultos" })
+        /* @__PURE__ */ jsx(Button, { variant: "hero", size: "touch", onClick: () => setTab("cultos"), children: "Ver cultos" })
       ] })
     ] }),
-    /* @__PURE__ */ jsx("h2", { className: "mb-3 mt-7 text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground", children: "Acesso rápido" }),
-    /* @__PURE__ */ jsx("div", { className: "grid grid-cols-2 gap-3 sm:grid-cols-3", children: actions.map(({ label, icon: Icon, go }) => /* @__PURE__ */ jsxs(Button, { variant: "outline", onClick: go, className: "h-auto min-h-28 flex-col items-start whitespace-normal rounded-2xl bg-card p-4 text-left shadow-sm", children: [
-      /* @__PURE__ */ jsx("span", { className: "grid size-10 place-items-center rounded-xl bg-secondary text-primary", children: /* @__PURE__ */ jsx(Icon, {}) }),
-      /* @__PURE__ */ jsx("span", { className: "mt-2 w-full font-bold leading-5", children: label })
-    ] }, label)) }),
-    /* @__PURE__ */ jsxs("section", { className: "mt-7", children: [
-      /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between", children: [
-        /* @__PURE__ */ jsx("h2", { className: "text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground", children: "Avisos recentes" }),
-        /* @__PURE__ */ jsx(Bell, { className: "size-4 text-muted-foreground" })
+    /* @__PURE__ */ jsx("h2", { className: "mb-4 mt-8 text-sm font-bold uppercase tracking-[0.14em] text-muted-foreground", children: "Acesso rápido" }),
+    /* @__PURE__ */ jsx("div", { className: "space-y-3", children: actions.map(({ label, description, icon: Icon, go }) => /* @__PURE__ */ jsxs(Button, { variant: "outline", onClick: go, className: "grid h-auto min-h-20 w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 whitespace-normal rounded-2xl border-2 bg-card p-4 text-left shadow-sm", children: [
+      /* @__PURE__ */ jsx("span", { className: "grid size-12 shrink-0 place-items-center rounded-2xl bg-secondary text-primary", children: /* @__PURE__ */ jsx(Icon, { className: "size-6" }) }),
+      /* @__PURE__ */ jsxs("span", { className: "min-w-0", children: [
+        /* @__PURE__ */ jsx("span", { className: "block text-lg font-bold leading-6", children: label }),
+        /* @__PURE__ */ jsx("span", { className: "block text-base font-normal leading-6 text-muted-foreground", children: description })
       ] }),
-      /* @__PURE__ */ jsxs("div", { className: "mt-3 space-y-3", children: [
-        content.filter((c) => c.content_type === "notice").slice(0, 3).map((c) => /* @__PURE__ */ jsxs("article", { className: "rounded-2xl border bg-card p-4", children: [
-          /* @__PURE__ */ jsx("h3", { className: "font-bold", children: c.title }),
-          /* @__PURE__ */ jsx("p", { className: "mt-1 line-clamp-3 text-sm leading-6 text-muted-foreground", children: c.body || c.summary })
+      /* @__PURE__ */ jsx(ChevronRight, { className: "shrink-0 text-primary" })
+    ] }, label)) }),
+    /* @__PURE__ */ jsxs("section", { className: "mt-8", children: [
+      /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between", children: [
+        /* @__PURE__ */ jsx("h2", { className: "text-sm font-bold uppercase tracking-[0.14em] text-muted-foreground", children: "Avisos recentes" }),
+        /* @__PURE__ */ jsx(Bell, { className: "size-5 text-primary" })
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "mt-4 space-y-3", children: [
+        content.filter((c) => c.content_type === "notice").slice(0, 3).map((c) => /* @__PURE__ */ jsxs("article", { className: "rounded-2xl border-2 bg-card p-5", children: [
+          /* @__PURE__ */ jsx("h3", { className: "text-lg font-bold", children: c.title }),
+          /* @__PURE__ */ jsx("p", { className: "mt-2 line-clamp-3 text-base leading-7 text-muted-foreground", children: c.body || c.summary })
         ] }, c.id)),
         content.filter((c) => c.content_type === "notice").length === 0 && /* @__PURE__ */ jsx(Message, { text: "Nenhum aviso publicado no momento." })
       ] })

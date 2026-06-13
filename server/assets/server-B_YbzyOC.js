@@ -76,7 +76,7 @@ function getResponse() {
 }
 var HEADERS = { TSS_SHELL: "X-TSS_SHELL" };
 async function getStartManifest(matchedRoutes) {
-  const { tsrStartManifest } = await import("./_tanstack-start-manifest_v-Bm7bN3pH.js");
+  const { tsrStartManifest } = await import("./_tanstack-start-manifest_v-ChHKszmU.js");
   const startManifest = tsrStartManifest();
   let routes = startManifest.routes;
   routes[rootRouteId];
@@ -98,7 +98,7 @@ async function getStartManifest(matchedRoutes) {
 const manifest = {
   "482160fb7da9422a30997d8d1edf5b0380db76c51a523de7ff71d0b08feeace3": {
     functionName: "ensureChurchAdminRole_createServerFn_handler",
-    importer: () => import("./admin.functions-dJ7v_fj0.js")
+    importer: () => import("./admin.functions-DKSiptWw.js")
   }
 };
 async function getServerFnById(id, access) {
@@ -1339,8 +1339,8 @@ var getBaseManifest = getProdBaseManifest;
 var createEarlyHintsForRequest = createEarlyHintsCollector;
 async function loadEntries() {
   const [routerEntry, startEntry, pluginAdapters] = await Promise.all([
-    import("./router-CYZ3k72t.js"),
-    import("./start-ChCJg2yD.js"),
+    import("./router-DfhAlhM9.js"),
+    import("./start-BKGtrOup.js"),
     import("./empty-plugin-adapters-BFgPZ6_d.js")
   ]);
   return {
