@@ -12,10 +12,19 @@ export const ensureChurchAdminRole = createServerFn({ method: "POST" })
     if (!ADMIN_EMAILS.has(email) || !emailVerified) return { isAdmin: false };
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin
+    const { error: roleError } = await supabaseAdmin
       .from("user_roles")
       .upsert({ user_id: context.userId, role: "admin" }, { onConflict: "user_id,role" });
 
-    if (error) throw new Error("Não foi possível ativar o acesso administrativo.");
+    if (roleError) throw new Error("Não foi possível ativar o acesso administrativo.");
+    const { error: profileError } = await supabaseAdmin.from("profiles").upsert({
+      id: context.userId,
+      full_name: "Administrador Filadélfia Conecta",
+      person_kind: "member",
+      membership_status: "verified",
+      onboarding_complete: true,
+      photo_consent: false,
+    }, { onConflict: "id" });
+    if (profileError) throw new Error("Não foi possível preparar o perfil administrativo.");
     return { isAdmin: true };
   });
