@@ -1,4 +1,4 @@
-import { c as createMiddleware, b as getRequest } from "./server-B_YbzyOC.js";
+import { c as createMiddleware, b as getRequest } from "./server-BvdiZZTW.js";
 import { createClient } from "@supabase/supabase-js";
 const requireSupabaseAuth = createMiddleware({ type: "function" }).server(
   async ({ next }) => {

@@ -1,8 +1,14 @@
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { createRootRouteWithContext, useRouter, Link, Outlet, HeadContent, Scripts, createFileRoute, lazyRouteComponent, createRouter } from "@tanstack/react-router";
 import { jsx, jsxs } from "react/jsx-runtime";
-import { useEffect } from "react";
-const appCss = "/assets/styles-yC070Tyh.css";
+import * as React from "react";
+import { useState, useEffect } from "react";
+import { X, Share2, Download } from "lucide-react";
+import { Slot } from "@radix-ui/react-slot";
+import { cva } from "class-variance-authority";
+import { clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+const appCss = "/assets/styles-DHFySast.css";
 function reportLovableError(error, context = {}) {
   if (typeof window === "undefined") return;
   window.__lovableEvents?.captureException?.(
@@ -18,6 +24,107 @@ function reportLovableError(error, context = {}) {
       severity: "error"
     }
   );
+}
+function cn(...inputs) {
+  return twMerge(clsx(inputs));
+}
+const buttonVariants = cva(
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  {
+    variants: {
+      variant: {
+        default: "bg-primary text-primary-foreground shadow hover:bg-primary/90",
+        hero: "bg-primary-foreground text-primary shadow-lg hover:bg-primary-foreground/90",
+        pastoral: "bg-accent text-accent-foreground shadow-sm hover:bg-accent/85",
+        destructive: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+        outline: "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
+        secondary: "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline"
+      },
+      size: {
+        default: "h-9 px-4 py-2",
+        touch: "h-12 rounded-xl px-5 text-sm font-semibold",
+        sm: "h-8 rounded-md px-3 text-xs",
+        lg: "h-10 rounded-md px-8",
+        icon: "h-9 w-9"
+      }
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default"
+    }
+  }
+);
+const Button = React.forwardRef(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button";
+    return /* @__PURE__ */ jsx(Comp, { className: cn(buttonVariants({ variant, size, className })), ref, ...props });
+  }
+);
+Button.displayName = "Button";
+function isStandalone() {
+  return window.matchMedia("(display-mode: standalone)").matches || "standalone" in window.navigator && Boolean(window.navigator.standalone);
+}
+function InstallAppPrompt() {
+  const [installEvent, setInstallEvent] = useState(null);
+  const [showIosHelp, setShowIosHelp] = useState(false);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    if (isStandalone()) return;
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (!isMobile) return;
+    const isIos = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (isIos) {
+      const timer = window.setTimeout(() => {
+        setShowIosHelp(true);
+        setVisible(true);
+      }, 1200);
+      return () => window.clearTimeout(timer);
+    }
+    const handlePrompt = (event) => {
+      event.preventDefault();
+      setInstallEvent(event);
+      setVisible(true);
+    };
+    window.addEventListener("beforeinstallprompt", handlePrompt);
+    return () => window.removeEventListener("beforeinstallprompt", handlePrompt);
+  }, []);
+  async function install() {
+    if (!installEvent) return;
+    await installEvent.prompt();
+    const choice = await installEvent.userChoice;
+    if (choice.outcome === "accepted") setVisible(false);
+    setInstallEvent(null);
+  }
+  if (!visible) return null;
+  return /* @__PURE__ */ jsx("div", { className: "fixed inset-0 z-[100] flex items-end bg-foreground/35 p-4 sm:items-center sm:justify-center", role: "dialog", "aria-modal": "true", "aria-labelledby": "install-title", children: /* @__PURE__ */ jsxs("section", { className: "relative w-full max-w-md rounded-3xl border bg-card p-5 shadow-pastoral", children: [
+    /* @__PURE__ */ jsx(Button, { variant: "ghost", size: "icon", className: "absolute right-3 top-3 rounded-full", onClick: () => setVisible(false), "aria-label": "Fechar convite de instalação", children: /* @__PURE__ */ jsx(X, {}) }),
+    /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-4 pr-9", children: [
+      /* @__PURE__ */ jsx("img", { src: "/icons/app-icon-192.png", alt: "Ícone da Igreja Presbiteriana Filadélfia", className: "size-20 rounded-2xl border object-cover shadow-sm" }),
+      /* @__PURE__ */ jsxs("div", { children: [
+        /* @__PURE__ */ jsx("p", { className: "text-sm font-bold uppercase tracking-[0.12em] text-primary", children: "Filadélfia Conecta" }),
+        /* @__PURE__ */ jsx("h2", { id: "install-title", className: "mt-1 font-display text-2xl font-bold", children: "Salve o aplicativo no celular" })
+      ] })
+    ] }),
+    showIosHelp ? /* @__PURE__ */ jsxs("div", { className: "mt-5 rounded-2xl bg-secondary p-4 text-base leading-7 text-secondary-foreground", children: [
+      /* @__PURE__ */ jsxs("p", { className: "flex items-center gap-2 font-bold", children: [
+        /* @__PURE__ */ jsx(Share2, { className: "size-5" }),
+        " No iPhone ou iPad"
+      ] }),
+      /* @__PURE__ */ jsxs("p", { className: "mt-2", children: [
+        "Toque em ",
+        /* @__PURE__ */ jsx("strong", { children: "Compartilhar" }),
+        " no navegador e depois em ",
+        /* @__PURE__ */ jsx("strong", { children: "Adicionar à Tela de Início" }),
+        "."
+      ] })
+    ] }) : /* @__PURE__ */ jsxs(Button, { size: "touch", className: "mt-5 w-full text-base", onClick: install, children: [
+      /* @__PURE__ */ jsx(Download, { className: "size-5" }),
+      " Instalar aplicativo"
+    ] }),
+    /* @__PURE__ */ jsx("p", { className: "mt-4 text-center text-sm leading-5 text-muted-foreground", children: "O ícone da igreja ficará na tela inicial, como os outros aplicativos." })
+  ] }) });
 }
 function NotFoundComponent() {
   return /* @__PURE__ */ jsx("div", { className: "flex min-h-screen items-center justify-center bg-background px-4", children: /* @__PURE__ */ jsxs("div", { className: "max-w-md text-center", children: [
@@ -36,7 +143,7 @@ function NotFoundComponent() {
 }
 function ErrorComponent({ error, reset }) {
   console.error(error);
-  const router = useRouter();
+  const router2 = useRouter();
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
@@ -48,7 +155,7 @@ function ErrorComponent({ error, reset }) {
         "button",
         {
           onClick: () => {
-            router.invalidate();
+            router2.invalidate();
             reset();
           },
           className: "inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90",
@@ -75,6 +182,9 @@ const Route$2 = createRootRouteWithContext()({
       { name: "description", content: "Comunidade digital da Igreja Presbiteriana Filadélfia." },
       { name: "author", content: "Igreja Presbiteriana Filadélfia" },
       { name: "theme-color", content: "#0F4D3A" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
+      { name: "apple-mobile-web-app-title", content: "Filadélfia" },
       { property: "og:title", content: "Filadélfia Conecta" },
       { property: "og:description", content: "Comunidade digital da Igreja Presbiteriana Filadélfia." },
       { property: "og:type", content: "website" },
@@ -88,6 +198,21 @@ const Route$2 = createRootRouteWithContext()({
       {
         rel: "stylesheet",
         href: appCss
+      },
+      {
+        rel: "manifest",
+        href: "/manifest.webmanifest"
+      },
+      {
+        rel: "icon",
+        type: "image/png",
+        sizes: "192x192",
+        href: "/icons/app-icon-192.png"
+      },
+      {
+        rel: "apple-touch-icon",
+        sizes: "180x180",
+        href: "/icons/apple-touch-icon.png"
       },
       {
         rel: "preconnect",
@@ -110,7 +235,7 @@ const Route$2 = createRootRouteWithContext()({
   errorComponent: ErrorComponent
 });
 function RootShell({ children }) {
-  return /* @__PURE__ */ jsxs("html", { lang: "en", children: [
+  return /* @__PURE__ */ jsxs("html", { lang: "pt-BR", children: [
     /* @__PURE__ */ jsx("head", { children: /* @__PURE__ */ jsx(HeadContent, {}) }),
     /* @__PURE__ */ jsxs("body", { children: [
       children,
@@ -120,7 +245,10 @@ function RootShell({ children }) {
 }
 function RootComponent() {
   const { queryClient } = Route$2.useRouteContext();
-  return /* @__PURE__ */ jsx(QueryClientProvider, { client: queryClient, children: /* @__PURE__ */ jsx(Outlet, {}) });
+  return /* @__PURE__ */ jsxs(QueryClientProvider, { client: queryClient, children: [
+    /* @__PURE__ */ jsx(Outlet, {}),
+    /* @__PURE__ */ jsx(InstallAppPrompt, {})
+  ] });
 }
 const BASE_URL = "";
 const Route$1 = createFileRoute("/sitemap.xml")({
@@ -144,7 +272,7 @@ const Route$1 = createFileRoute("/sitemap.xml")({
     }
   }
 });
-const $$splitComponentImporter = () => import("./index-QZPHjO2O.js");
+const $$splitComponentImporter = () => import("./index-DF08DD7B.js");
 const Route = createFileRoute("/")({
   head: () => ({
     meta: [{
@@ -179,14 +307,20 @@ const rootRouteChildren = {
 const routeTree = Route$2._addFileChildren(rootRouteChildren)._addFileTypes();
 const getRouter = () => {
   const queryClient = new QueryClient();
-  const router = createRouter({
+  const router2 = createRouter({
     routeTree,
     context: { queryClient },
     scrollRestoration: true,
     defaultPreloadStaleTime: 0
   });
-  return router;
+  return router2;
 };
-export {
+const router = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
   getRouter
+}, Symbol.toStringTag, { value: "Module" }));
+export {
+  Button as B,
+  cn as c,
+  router as r
 };

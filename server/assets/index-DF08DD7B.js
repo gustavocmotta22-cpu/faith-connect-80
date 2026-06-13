@@ -4,13 +4,11 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { Check, Loader2, LogOut, Home, Church, Users, Library, Menu, LockKeyhole, HeartHandshake, Camera, Images, ShieldCheck, Upload, CheckCircle2, Plus, Gift, Sparkles, MapPin, ChevronRight, Bell, MessageCircle, BookOpen, Download } from "lucide-react";
 import { s as supabase } from "./client-ycPsap7o.js";
 import { createLovableAuth } from "@lovable.dev/cloud-auth-js";
-import { T as TSS_SERVER_FUNCTION, g as getServerFnById, a as createServerFn } from "./server-B_YbzyOC.js";
-import { r as requireSupabaseAuth } from "./auth-middleware-ChtW2zEX.js";
-import { Slot } from "@radix-ui/react-slot";
-import { cva } from "class-variance-authority";
-import { clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { T as TSS_SERVER_FUNCTION, g as getServerFnById, a as createServerFn } from "./server-BvdiZZTW.js";
+import { r as requireSupabaseAuth } from "./auth-middleware-C3RV4CQq.js";
+import { c as cn, B as Button } from "./router-Bqxy_SZJ.js";
 import * as LabelPrimitive from "@radix-ui/react-label";
+import { cva } from "class-variance-authority";
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
 import "@supabase/supabase-js";
 import "node:async_hooks";
@@ -22,6 +20,10 @@ import "@tanstack/router-core/ssr/client";
 import "@tanstack/router-core/ssr/server";
 import "@tanstack/react-router";
 import "@tanstack/react-router/ssr/server";
+import "@tanstack/react-query";
+import "@radix-ui/react-slot";
+import "clsx";
+import "tailwind-merge";
 const lovableAuth = createLovableAuth();
 const lovable = {
   auth: {
@@ -70,44 +72,6 @@ const url = "/__l5e/assets-v1/6ccb30b0-df65-48d7-b2bd-8cbcee81fefd/talentos-do-r
 const socialActionAsset = {
   url
 };
-function cn(...inputs) {
-  return twMerge(clsx(inputs));
-}
-const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
-  {
-    variants: {
-      variant: {
-        default: "bg-primary text-primary-foreground shadow hover:bg-primary/90",
-        hero: "bg-primary-foreground text-primary shadow-lg hover:bg-primary-foreground/90",
-        pastoral: "bg-accent text-accent-foreground shadow-sm hover:bg-accent/85",
-        destructive: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
-        outline: "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
-        secondary: "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline"
-      },
-      size: {
-        default: "h-9 px-4 py-2",
-        touch: "h-12 rounded-xl px-5 text-sm font-semibold",
-        sm: "h-8 rounded-md px-3 text-xs",
-        lg: "h-10 rounded-md px-8",
-        icon: "h-9 w-9"
-      }
-    },
-    defaultVariants: {
-      variant: "default",
-      size: "default"
-    }
-  }
-);
-const Button = React.forwardRef(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot : "button";
-    return /* @__PURE__ */ jsx(Comp, { className: cn(buttonVariants({ variant, size, className })), ref, ...props });
-  }
-);
-Button.displayName = "Button";
 const Input = React.forwardRef(
   ({ className, type, ...props }, ref) => {
     return /* @__PURE__ */ jsx(

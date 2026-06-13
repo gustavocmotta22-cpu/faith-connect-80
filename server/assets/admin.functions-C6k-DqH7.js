@@ -1,5 +1,5 @@
-import { T as TSS_SERVER_FUNCTION, a as createServerFn } from "./server-B_YbzyOC.js";
-import { r as requireSupabaseAuth } from "./auth-middleware-ChtW2zEX.js";
+import { T as TSS_SERVER_FUNCTION, a as createServerFn } from "./server-BvdiZZTW.js";
+import { r as requireSupabaseAuth } from "./auth-middleware-C3RV4CQq.js";
 import "node:async_hooks";
 import "h3-v2";
 import "@tanstack/router-core";
