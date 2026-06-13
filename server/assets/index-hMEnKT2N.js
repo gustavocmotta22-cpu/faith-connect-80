@@ -1,16 +1,16 @@
 import { jsx, jsxs, Fragment } from "react/jsx-runtime";
 import * as React from "react";
 import { useState, useEffect, useMemo, useRef } from "react";
-import { Check, Loader2, Camera, Pencil, Plus, Trash2, Sparkles, LogOut, Home, Church, Users, Library, Menu, LockKeyhole, HeartHandshake, Images, ShieldCheck, Upload, MessageCircle, UserRound, Gift, CheckCircle2, BookOpen, CalendarDays, Bell, MapPin, Download, ChevronRight } from "lucide-react";
+import { Check, Loader2, Camera, Pencil, Plus, Trash2, Sparkles, LogOut, Home, Church, Users, Library, Menu, LockKeyhole, HeartHandshake, Images, ShieldCheck, Upload, MessageCircle, Gift, CheckCircle2, BookOpen, CalendarDays, Bell, MapPin, Download, ChevronRight } from "lucide-react";
 import { s as supabase } from "./client-ycPsap7o.js";
 import { createLovableAuth } from "@lovable.dev/cloud-auth-js";
-import { c as cn, B as Button } from "./router-DvN_tFEX.js";
+import { c as cn, B as Button } from "./router-m2idp7Fw.js";
 import * as LabelPrimitive from "@radix-ui/react-label";
 import { cva } from "class-variance-authority";
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
 import { useRouter, isRedirect } from "@tanstack/react-router";
-import { T as TSS_SERVER_FUNCTION, g as getServerFnById, a as createServerFn } from "./server--HvE20L6.js";
-import { r as requireSupabaseAuth } from "./auth-middleware-DsHTmBA0.js";
+import { T as TSS_SERVER_FUNCTION, g as getServerFnById, a as createServerFn } from "./server-ksyJijht.js";
+import { r as requireSupabaseAuth } from "./auth-middleware-BOxZrHs1.js";
 import "@supabase/supabase-js";
 import "@tanstack/react-query";
 import "@radix-ui/react-slot";
@@ -65,12 +65,28 @@ const lovable = {
     }
   }
 };
-const url$1 = "/__l5e/assets-v1/dd9aa310-1325-4147-b635-25cf525f18be/ipf-logo.jpg";
+const url$5 = "/__l5e/assets-v1/dd9aa310-1325-4147-b635-25cf525f18be/ipf-logo.jpg";
 const logoAsset = {
+  url: url$5
+};
+const url$4 = "/__l5e/assets-v1/6ccb30b0-df65-48d7-b2bd-8cbcee81fefd/talentos-do-reino.jpg";
+const socialActionAsset = {
+  url: url$4
+};
+const url$3 = "/__l5e/assets-v1/523e4a97-b480-4adf-b3eb-0ef4d26222ca/conselho-rafael.jpg";
+const councilRafaelAsset = {
+  url: url$3
+};
+const url$2 = "/__l5e/assets-v1/f0bb0daf-4a94-4773-ad41-b987599446e7/conselho-ailson.jpg";
+const councilAilsonAsset = {
+  url: url$2
+};
+const url$1 = "/__l5e/assets-v1/c9750f9f-d98f-4eb7-8e0c-22385e15f966/conselho-osvaldo.jpg";
+const councilOsvaldoAsset = {
   url: url$1
 };
-const url = "/__l5e/assets-v1/6ccb30b0-df65-48d7-b2bd-8cbcee81fefd/talentos-do-reino.jpg";
-const socialActionAsset = {
+const url = "/__l5e/assets-v1/4e961be6-d5e2-451e-a6fd-0503927df7da/conselho-gustavo.jpg";
+const councilGustavoAsset = {
   url
 };
 const Input = React.forwardRef(
@@ -1118,26 +1134,56 @@ function ContactView({ title, description }) {
   ] }) });
 }
 function CouncilView() {
+  const [message, setMessage] = useState("");
+  const [status, setStatus] = useState("");
   const members = [
-    { name: "Rev. Rafael Ribeiro", role: "Pastor · Presidente do Conselho", phone: "5521987361216" },
-    { name: "Presbítero Ailson", role: "Presbítero Regente", phone: "5521991571376" },
-    { name: "Presbítero Osvaldo", role: "Presbítero Regente", phone: "5521998461235" },
-    { name: "Presbítero Gustavo", role: "Presbítero Regente", phone: "5521989290880" }
+    { name: "Rev. Rafael Ribeiro", role: "Pastor · Presidente", phone: "5521987361216", photo: councilRafaelAsset.url },
+    { name: "Presb. Ailson", role: "Presbítero Regente", phone: "5521991571376", photo: councilAilsonAsset.url },
+    { name: "Presb. Osvaldo", role: "Presbítero Regente", phone: "5521998461235", photo: councilOsvaldoAsset.url },
+    { name: "Presb. Gustavo", role: "Presbítero Regente", phone: "5521989290880", photo: councilGustavoAsset.url }
   ];
-  return /* @__PURE__ */ jsxs("div", { className: "mx-auto max-w-3xl px-5 py-6", children: [
-    /* @__PURE__ */ jsx("p", { className: "text-center text-sm leading-6 text-muted-foreground", children: "Abra o WhatsApp para falar diretamente com cada membro do Conselho." }),
-    /* @__PURE__ */ jsx("h2", { className: "mb-4 mt-7 font-display text-2xl font-bold text-primary", children: "Membros do Conselho" }),
-    /* @__PURE__ */ jsx("div", { className: "space-y-4", children: members.map((member) => /* @__PURE__ */ jsxs("article", { className: "flex items-center gap-4 rounded-3xl border bg-card p-4 shadow-sm", children: [
-      /* @__PURE__ */ jsx("div", { className: "grid size-20 shrink-0 place-items-center rounded-full border-4 border-secondary bg-muted text-primary", children: /* @__PURE__ */ jsx(UserRound, { className: "size-9" }) }),
-      /* @__PURE__ */ jsxs("div", { className: "min-w-0 flex-1", children: [
-        /* @__PURE__ */ jsx("h3", { className: "font-display text-xl font-bold leading-tight text-primary", children: member.name }),
-        /* @__PURE__ */ jsx("p", { className: "mt-1 text-sm text-muted-foreground", children: member.role }),
-        /* @__PURE__ */ jsx(Button, { asChild: true, size: "sm", className: "mt-3 rounded-xl", children: /* @__PURE__ */ jsxs("a", { href: `https://wa.me/${member.phone}`, target: "_blank", rel: "noreferrer", "aria-label": `Conversar com ${member.name} no WhatsApp`, children: [
-          /* @__PURE__ */ jsx(MessageCircle, {}),
-          "WhatsApp"
-        ] }) })
-      ] })
-    ] }, member.name)) })
+  function whatsappUrl(phone) {
+    const text = message.trim() ? `Mensagem ao Conselho da IPF: ${message.trim()}` : "Olá! Gostaria de falar com o Conselho da IPF.";
+    return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+  }
+  function sendToCouncil() {
+    if (!message.trim()) {
+      setStatus("Digite sua mensagem antes de enviar.");
+      return;
+    }
+    setStatus("");
+    for (const member of members) {
+      if (!window.confirm(`Enviar para ${member.name}?`)) continue;
+      window.open(whatsappUrl(member.phone), "_blank", "noopener,noreferrer");
+    }
+  }
+  return /* @__PURE__ */ jsxs("div", { className: "mx-auto max-w-3xl space-y-6 px-5 py-6", children: [
+    /* @__PURE__ */ jsxs("section", { className: "rounded-3xl border bg-card p-6 text-center shadow-pastoral", children: [
+      /* @__PURE__ */ jsx("span", { className: "text-5xl", "aria-hidden": "true", children: "🏛️" }),
+      /* @__PURE__ */ jsx("h2", { className: "mt-3 font-display text-3xl font-bold text-primary", children: "Canal Direto e Reservado" }),
+      /* @__PURE__ */ jsx("p", { className: "mt-3 text-base leading-7 text-muted-foreground", children: "Sua mensagem será enviada ao Pastor e aos Presbíteros do Conselho." })
+    ] }),
+    /* @__PURE__ */ jsxs("section", { className: "space-y-3", children: [
+      /* @__PURE__ */ jsx(Label, { htmlFor: "council-message", className: "text-sm font-bold uppercase tracking-[0.08em] text-primary", children: "Sua mensagem ao Conselho" }),
+      /* @__PURE__ */ jsx(Textarea, { id: "council-message", value: message, onChange: (event) => setMessage(event.target.value), maxLength: 2e3, rows: 5, className: "resize-none rounded-2xl bg-card text-base", placeholder: "Escreva sua mensagem. Ela será enviada a todos os membros do Conselho..." }),
+      status && /* @__PURE__ */ jsx(Message, { text: status, danger: true }),
+      /* @__PURE__ */ jsx(Button, { type: "button", size: "touch", className: "w-full rounded-2xl text-base", onClick: sendToCouncil, children: "🏛️ Enviar para Todo o Conselho" }),
+      /* @__PURE__ */ jsx("p", { className: "text-center text-sm leading-5 text-muted-foreground", children: "O WhatsApp será aberto para cada membro, após sua confirmação." })
+    ] }),
+    /* @__PURE__ */ jsxs("section", { children: [
+      /* @__PURE__ */ jsx("h2", { className: "mb-4 font-display text-2xl font-bold text-primary", children: "Membros do Conselho" }),
+      /* @__PURE__ */ jsx("div", { className: "space-y-4", children: members.map((member) => /* @__PURE__ */ jsxs("article", { className: "flex items-center gap-4 rounded-3xl border bg-card p-4 shadow-sm", children: [
+        /* @__PURE__ */ jsx("img", { src: member.photo, alt: `Foto de identificação de ${member.name}`, className: "size-20 shrink-0 rounded-full border-4 border-secondary object-cover" }),
+        /* @__PURE__ */ jsxs("div", { className: "min-w-0 flex-1", children: [
+          /* @__PURE__ */ jsx("h3", { className: "font-display text-xl font-bold leading-tight text-primary", children: member.name }),
+          /* @__PURE__ */ jsx("p", { className: "mt-1 text-sm text-muted-foreground", children: member.role }),
+          /* @__PURE__ */ jsx(Button, { asChild: true, size: "sm", className: "mt-3 rounded-xl", children: /* @__PURE__ */ jsxs("a", { href: whatsappUrl(member.phone), target: "_blank", rel: "noreferrer", "aria-label": `Conversar com ${member.name} no WhatsApp`, children: [
+            /* @__PURE__ */ jsx(MessageCircle, {}),
+            "WhatsApp"
+          ] }) })
+        ] })
+      ] }, member.name)) })
+    ] })
   ] });
 }
 function OfferingView() {

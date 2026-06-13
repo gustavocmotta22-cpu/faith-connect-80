@@ -8,7 +8,7 @@ import { Slot } from "@radix-ui/react-slot";
 import { cva } from "class-variance-authority";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-const appCss = "/assets/styles-Cm2k6YMh.css";
+const appCss = "/assets/styles-BC1o2APZ.css";
 function reportLovableError(error, context = {}) {
   if (typeof window === "undefined") return;
   window.__lovableEvents?.captureException?.(
@@ -272,7 +272,7 @@ const Route$1 = createFileRoute("/sitemap.xml")({
     }
   }
 });
-const $$splitComponentImporter = () => import("./index-Dm9Wh_Vt.js");
+const $$splitComponentImporter = () => import("./index-hMEnKT2N.js");
 const Route = createFileRoute("/")({
   head: () => ({
     meta: [{
