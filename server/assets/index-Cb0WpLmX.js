@@ -4,23 +4,13 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { Check, Loader2, LogOut, Home, Church, Users, Library, Menu, LockKeyhole, HeartHandshake, Camera, Images, ShieldCheck, Upload, CheckCircle2, Plus, Gift, Sparkles, MapPin, ChevronRight, Bell, MessageCircle, BookOpen, Download } from "lucide-react";
 import { s as supabase } from "./client-ycPsap7o.js";
 import { createLovableAuth } from "@lovable.dev/cloud-auth-js";
-import { T as TSS_SERVER_FUNCTION, g as getServerFnById, a as createServerFn } from "./server-w3z_Fj_7.js";
-import { r as requireSupabaseAuth } from "./auth-middleware-NK-umOyx.js";
-import { c as cn, B as Button } from "./router-CANOqaDn.js";
+import { c as cn, B as Button } from "./router-cVL4NQ9S.js";
 import * as LabelPrimitive from "@radix-ui/react-label";
 import { cva } from "class-variance-authority";
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
 import "@supabase/supabase-js";
-import "node:async_hooks";
-import "h3-v2";
-import "@tanstack/router-core";
-import "seroval";
-import "@tanstack/history";
-import "@tanstack/router-core/ssr/client";
-import "@tanstack/router-core/ssr/server";
-import "@tanstack/react-router";
-import "@tanstack/react-router/ssr/server";
 import "@tanstack/react-query";
+import "@tanstack/react-router";
 import "@radix-ui/react-slot";
 import "clsx";
 import "tailwind-merge";
@@ -49,21 +39,6 @@ const lovable = {
     }
   }
 };
-var createSsrRpc = (functionId) => {
-  const url2 = "/_serverFn/" + functionId;
-  const serverFnMeta = { id: functionId };
-  const fn = async (...args) => {
-    return (await getServerFnById(functionId))(...args);
-  };
-  return Object.assign(fn, {
-    url: url2,
-    serverFnMeta,
-    [TSS_SERVER_FUNCTION]: true
-  });
-};
-const ensureChurchAdminRole = createServerFn({
-  method: "POST"
-}).middleware([requireSupabaseAuth]).handler(createSsrRpc("482160fb7da9422a30997d8d1edf5b0380db76c51a523de7ff71d0b08feeace3"));
 const url$1 = "/__l5e/assets-v1/dd9aa310-1325-4147-b635-25cf525f18be/ipf-logo.jpg";
 const logoAsset = {
   url: url$1
@@ -622,7 +597,6 @@ function FiladelfiaApp() {
   const [profiles, setProfiles] = useState([]);
   const [signedUrls, setSignedUrls] = useState({});
   async function loadData(userId) {
-    await ensureChurchAdminRole();
     const [p, role, b, g, l, s, c, prayers] = await Promise.all([supabase.from("profiles").select("*").eq("id", userId).maybeSingle(), supabase.from("user_roles").select("role").eq("user_id", userId).maybeSingle(), supabase.from("birthday_directory").select("*").order("birth_date"), supabase.from("gallery_items").select("*").order("created_at", { ascending: false }), supabase.from("library_items").select("*").order("created_at", { ascending: false }), supabase.from("society_groups").select("*").order("acronym"), supabase.from("church_content").select("*").order("created_at", { ascending: false }), supabase.from("prayer_publications").select("*").order("created_at", { ascending: false })]);
     setProfile(p.data);
     setIsAdmin(role.data?.role === "admin");
