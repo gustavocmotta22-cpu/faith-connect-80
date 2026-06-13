@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      birthday_directory: {
+        Row: {
+          birth_date: string
+          full_name: string
+          photo_path: string | null
+          profile_id: string
+          updated_at: string
+        }
+        Insert: {
+          birth_date: string
+          full_name: string
+          photo_path?: string | null
+          profile_id: string
+          updated_at?: string
+        }
+        Update: {
+          birth_date?: string
+          full_name?: string
+          photo_path?: string | null
+          profile_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       church_content: {
         Row: {
           body: string | null
