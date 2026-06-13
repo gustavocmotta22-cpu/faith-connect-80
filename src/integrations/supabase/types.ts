@@ -14,16 +14,270 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      church_content: {
+        Row: {
+          body: string | null
+          content_type: string
+          created_at: string
+          created_by: string
+          event_at: string | null
+          id: string
+          image_path: string | null
+          is_published: boolean
+          summary: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body?: string | null
+          content_type: string
+          created_at?: string
+          created_by: string
+          event_at?: string | null
+          id?: string
+          image_path?: string | null
+          is_published?: boolean
+          summary?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string | null
+          content_type?: string
+          created_at?: string
+          created_by?: string
+          event_at?: string | null
+          id?: string
+          image_path?: string | null
+          is_published?: boolean
+          summary?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      gallery_items: {
+        Row: {
+          caption: string
+          created_at: string
+          id: string
+          is_approved: boolean
+          photo_path: string
+          responsibility_accepted: boolean
+          updated_at: string
+          uploader_id: string
+          uploader_name: string
+        }
+        Insert: {
+          caption: string
+          created_at?: string
+          id?: string
+          is_approved?: boolean
+          photo_path: string
+          responsibility_accepted?: boolean
+          updated_at?: string
+          uploader_id: string
+          uploader_name: string
+        }
+        Update: {
+          caption?: string
+          created_at?: string
+          id?: string
+          is_approved?: boolean
+          photo_path?: string
+          responsibility_accepted?: boolean
+          updated_at?: string
+          uploader_id?: string
+          uploader_name?: string
+        }
+        Relationships: []
+      }
+      library_items: {
+        Row: {
+          author: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_free_licensed: boolean
+          pdf_path: string
+          title: string
+          updated_at: string
+          uploaded_by: string
+        }
+        Insert: {
+          author?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_free_licensed?: boolean
+          pdf_path: string
+          title: string
+          updated_at?: string
+          uploaded_by: string
+        }
+        Update: {
+          author?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_free_licensed?: boolean
+          pdf_path?: string
+          title?: string
+          updated_at?: string
+          uploaded_by?: string
+        }
+        Relationships: []
+      }
+      prayer_requests: {
+        Row: {
+          created_at: string
+          id: string
+          is_private: boolean
+          message: string
+          requester_id: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_private?: boolean
+          message: string
+          requester_id: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_private?: boolean
+          message?: string
+          requester_id?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          birth_date: string | null
+          church_denomination: string | null
+          created_at: string
+          full_name: string
+          has_religion: boolean | null
+          id: string
+          membership_status: Database["public"]["Enums"]["membership_status"]
+          onboarding_complete: boolean
+          person_kind: Database["public"]["Enums"]["person_kind"]
+          phone: string | null
+          photo_consent: boolean
+          photo_path: string | null
+          religion: string | null
+          updated_at: string
+        }
+        Insert: {
+          birth_date?: string | null
+          church_denomination?: string | null
+          created_at?: string
+          full_name: string
+          has_religion?: boolean | null
+          id: string
+          membership_status?: Database["public"]["Enums"]["membership_status"]
+          onboarding_complete?: boolean
+          person_kind: Database["public"]["Enums"]["person_kind"]
+          phone?: string | null
+          photo_consent?: boolean
+          photo_path?: string | null
+          religion?: string | null
+          updated_at?: string
+        }
+        Update: {
+          birth_date?: string | null
+          church_denomination?: string | null
+          created_at?: string
+          full_name?: string
+          has_religion?: boolean | null
+          id?: string
+          membership_status?: Database["public"]["Enums"]["membership_status"]
+          onboarding_complete?: boolean
+          person_kind?: Database["public"]["Enums"]["person_kind"]
+          phone?: string | null
+          photo_consent?: boolean
+          photo_path?: string | null
+          religion?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      society_groups: {
+        Row: {
+          acronym: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+          whatsapp_url: string | null
+        }
+        Insert: {
+          acronym: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+          whatsapp_url?: string | null
+        }
+        Update: {
+          acronym?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+          whatsapp_url?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_verified_member: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin"
+      membership_status: "pending" | "verified" | "rejected"
+      person_kind: "member" | "visitor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +404,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin"],
+      membership_status: ["pending", "verified", "rejected"],
+      person_kind: ["member", "visitor"],
+    },
   },
 } as const
