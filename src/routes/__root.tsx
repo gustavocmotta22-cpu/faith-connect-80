@@ -77,19 +77,27 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Filadélfia Conecta" },
+      { name: "description", content: "Comunidade digital da Igreja Presbiteriana Filadélfia." },
+      { name: "author", content: "Igreja Presbiteriana Filadélfia" },
+      { name: "theme-color", content: "#0F4D3A" },
+      { property: "og:title", content: "Filadélfia Conecta" },
+      { property: "og:description", content: "Comunidade digital da Igreja Presbiteriana Filadélfia." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
+      },
+      {
+        rel: "preconnect",
+        href: "https://fonts.googleapis.com",
+      },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Manrope:wght@400;500;600;700;800&display=swap",
       },
     ],
   }),
