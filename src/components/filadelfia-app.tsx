@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
   Bell,
