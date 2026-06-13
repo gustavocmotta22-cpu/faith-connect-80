@@ -173,7 +173,7 @@ function ErrorComponent({ error, reset }) {
     ] })
   ] }) });
 }
-const Route$2 = createRootRouteWithContext()({
+const Route$3 = createRootRouteWithContext()({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -244,14 +244,14 @@ function RootShell({ children }) {
   ] });
 }
 function RootComponent() {
-  const { queryClient } = Route$2.useRouteContext();
+  const { queryClient } = Route$3.useRouteContext();
   return /* @__PURE__ */ jsxs(QueryClientProvider, { client: queryClient, children: [
     /* @__PURE__ */ jsx(Outlet, {}),
     /* @__PURE__ */ jsx(InstallAppPrompt, {})
   ] });
 }
 const BASE_URL = "";
-const Route$1 = createFileRoute("/sitemap.xml")({
+const Route$2 = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: async () => {
@@ -272,7 +272,11 @@ const Route$1 = createFileRoute("/sitemap.xml")({
     }
   }
 });
-const $$splitComponentImporter = () => import("./index-THd1nLnq.js");
+const $$splitComponentImporter$1 = () => import("./reset-password-BYvVRZjB.js");
+const Route$1 = createFileRoute("/reset-password")({
+  component: lazyRouteComponent($$splitComponentImporter$1, "component")
+});
+const $$splitComponentImporter = () => import("./index-BR6A-kxB.js");
 const Route = createFileRoute("/")({
   head: () => ({
     meta: [{
@@ -290,21 +294,27 @@ const Route = createFileRoute("/")({
   }),
   component: lazyRouteComponent($$splitComponentImporter, "component")
 });
-const SitemapDotxmlRoute = Route$1.update({
+const SitemapDotxmlRoute = Route$2.update({
   id: "/sitemap.xml",
   path: "/sitemap.xml",
-  getParentRoute: () => Route$2
+  getParentRoute: () => Route$3
+});
+const ResetPasswordRoute = Route$1.update({
+  id: "/reset-password",
+  path: "/reset-password",
+  getParentRoute: () => Route$3
 });
 const IndexRoute = Route.update({
   id: "/",
   path: "/",
-  getParentRoute: () => Route$2
+  getParentRoute: () => Route$3
 });
 const rootRouteChildren = {
   IndexRoute,
+  ResetPasswordRoute,
   SitemapDotxmlRoute
 };
-const routeTree = Route$2._addFileChildren(rootRouteChildren)._addFileTypes();
+const routeTree = Route$3._addFileChildren(rootRouteChildren)._addFileTypes();
 const getRouter = () => {
   const queryClient = new QueryClient();
   const router2 = createRouter({

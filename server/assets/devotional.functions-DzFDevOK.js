@@ -1,6 +1,7 @@
-import { T as TSS_SERVER_FUNCTION, a as createServerFn } from "./server-CfcMa1ho.js";
+import { c as createServerRpc } from "./createServerRpc-vn8wjfLW.js";
+import { a as createServerFn } from "./server-atXGQ379.js";
 import { z } from "zod";
-import { r as requireSupabaseAuth } from "./auth-middleware-C5Snvecm.js";
+import { r as requireSupabaseAuth } from "./auth-middleware-DNGwyVTU.js";
 import "node:async_hooks";
 import "h3-v2";
 import "@tanstack/router-core";
@@ -13,14 +14,6 @@ import "@tanstack/react-router";
 import "react/jsx-runtime";
 import "@tanstack/react-router/ssr/server";
 import "@supabase/supabase-js";
-var createServerRpc = (serverFnMeta, splitImportFn) => {
-  const url = "/_serverFn/" + serverFnMeta.id;
-  return Object.assign(splitImportFn, {
-    url,
-    serverFnMeta,
-    [TSS_SERVER_FUNCTION]: true
-  });
-};
 const BibleVerseSchema = z.object({
   book: z.object({
     name: z.string(),

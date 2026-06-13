@@ -1,21 +1,23 @@
 import { jsx, jsxs, Fragment } from "react/jsx-runtime";
 import * as React from "react";
 import { useState, useEffect, useMemo, useRef } from "react";
-import { Check, Loader2, Camera, Pencil, Plus, Trash2, Sparkles, LogOut, Home, Church, Users, Library, Menu, LockKeyhole, HeartHandshake, Images, ShieldCheck, Upload, MessageCircle, Gift, CheckCircle2, BookOpen, CalendarDays, Bell, MapPin, Download, ChevronRight } from "lucide-react";
+import { Check, Loader2, Camera, Pencil, Plus, Trash2, Sparkles, LogOut, Home, Church, Users, Library, Menu, ShieldCheck, LockKeyhole, HeartHandshake, Images, Upload, MessageCircle, Gift, CheckCircle2, BookOpen, CalendarDays, Bell, MapPin, Download, ChevronRight } from "lucide-react";
+import { useRouter, isRedirect } from "@tanstack/react-router";
 import { s as supabase } from "./client-ycPsap7o.js";
 import { createLovableAuth } from "@lovable.dev/cloud-auth-js";
-import { c as cn, B as Button } from "./router-DUMfC8-U.js";
-import * as LabelPrimitive from "@radix-ui/react-label";
-import { cva } from "class-variance-authority";
+import { c as cn, B as Button } from "./router-CBfMpBMY.js";
+import { L as Label, I as Input } from "./label-D6jfJ59O.js";
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
-import { useRouter, isRedirect } from "@tanstack/react-router";
-import { T as TSS_SERVER_FUNCTION, g as getServerFnById, a as createServerFn } from "./server-CfcMa1ho.js";
-import { r as requireSupabaseAuth } from "./auth-middleware-C5Snvecm.js";
+import { T as TSS_SERVER_FUNCTION, g as getServerFnById, a as createServerFn } from "./server-atXGQ379.js";
+import { r as requireSupabaseAuth } from "./auth-middleware-DNGwyVTU.js";
+import { z } from "zod";
 import "@supabase/supabase-js";
 import "@tanstack/react-query";
 import "@radix-ui/react-slot";
+import "class-variance-authority";
 import "clsx";
 import "tailwind-merge";
+import "@radix-ui/react-label";
 import "node:async_hooks";
 import "h3-v2";
 import "@tanstack/router-core";
@@ -89,23 +91,6 @@ const url = "/__l5e/assets-v1/4e961be6-d5e2-451e-a6fd-0503927df7da/conselho-gust
 const councilGustavoAsset = {
   url
 };
-const Input = React.forwardRef(
-  ({ className, type, ...props }, ref) => {
-    return /* @__PURE__ */ jsx(
-      "input",
-      {
-        type,
-        className: cn(
-          "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-          className
-        ),
-        ref,
-        ...props
-      }
-    );
-  }
-);
-Input.displayName = "Input";
 const Textarea = React.forwardRef(
   ({ className, ...props }, ref) => {
     return /* @__PURE__ */ jsx(
@@ -122,11 +107,6 @@ const Textarea = React.forwardRef(
   }
 );
 Textarea.displayName = "Textarea";
-const labelVariants = cva(
-  "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-);
-const Label = React.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx(LabelPrimitive.Root, { ref, className: cn(labelVariants(), className), ...props }));
-Label.displayName = LabelPrimitive.Root.displayName;
 const Checkbox = React.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx(
   CheckboxPrimitive.Root,
   {
@@ -374,6 +354,42 @@ function AdminDevotionals({ items, session, reload }) {
     ] })
   ] });
 }
+const ensureChurchAdminRole = createServerFn({
+  method: "POST"
+}).middleware([requireSupabaseAuth]).handler(createSsrRpc("482160fb7da9422a30997d8d1edf5b0380db76c51a523de7ff71d0b08feeace3"));
+const AdminMutationSchema = z.discriminatedUnion("action", [z.object({
+  action: z.literal("set-member-status"),
+  id: z.string().uuid(),
+  status: z.enum(["verified", "rejected"])
+}), z.object({
+  action: z.literal("set-gallery-status"),
+  id: z.string().uuid(),
+  approved: z.boolean()
+}), z.object({
+  action: z.literal("delete-gallery"),
+  id: z.string().uuid()
+}), z.object({
+  action: z.literal("save-society"),
+  id: z.string().uuid(),
+  whatsappUrl: z.string().url().max(500).nullable()
+}), z.object({
+  action: z.literal("save-content"),
+  id: z.string().uuid().nullable(),
+  contentType: z.enum(["notice", "event", "liturgy", "social_action", "about"]),
+  title: z.string().trim().min(2).max(160),
+  body: z.string().trim().max(1e4).nullable()
+}), z.object({
+  action: z.literal("delete-content"),
+  id: z.string().uuid()
+}), z.object({
+  action: z.literal("add-library-item"),
+  title: z.string().trim().min(2).max(200),
+  author: z.string().trim().max(160).nullable(),
+  pdfPath: z.string().min(1).max(500)
+})]);
+const runAdminMutation = createServerFn({
+  method: "POST"
+}).middleware([requireSupabaseAuth]).inputValidator((input) => AdminMutationSchema.parse(input)).handler(createSsrRpc("7f1fe6ef732d27112fd53eeb4934121b20106ffe754a469974bd1dbf06a05fe1"));
 const schedules = [
   ["Domingo", "09h00", "Culto de Adoração"],
   ["Domingo", "10h15", "Escola Bíblica Dominical"],
@@ -426,6 +442,16 @@ function AuthScreen() {
     if (result.error) setMessage(result.error.message);
     else if (mode === "signup") setMessage("Confira seu e-mail para confirmar o cadastro e entrar.");
   }
+  async function prepareAdminAccess() {
+    setBusy(true);
+    setMessage("");
+    const adminEmail = "adm_filadelfiaconecta@gmail.com";
+    const randomPassword = `${crypto.randomUUID()}A1!`;
+    await supabase.auth.signUp({ email: adminEmail, password: randomPassword, options: { emailRedirectTo: `${window.location.origin}/reset-password` } });
+    const result = await supabase.auth.resetPasswordForEmail(adminEmail, { redirectTo: `${window.location.origin}/reset-password` });
+    setBusy(false);
+    setMessage(result.error ? result.error.message : "Enviamos um link seguro ao e-mail do administrador para definir a senha. A senha não aparece nem fica salva no aplicativo.");
+  }
   async function googleLogin() {
     setBusy(true);
     const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
@@ -446,24 +472,35 @@ function AuthScreen() {
       /* @__PURE__ */ jsxs("form", { className: "space-y-4", onSubmit: submit, children: [
         /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
           /* @__PURE__ */ jsx(Label, { htmlFor: "auth-email", children: "E-mail" }),
-          /* @__PURE__ */ jsx(Input, { id: "auth-email", type: "email", autoComplete: "email", required: true, maxLength: 255, value: email, onChange: (e) => setEmail(e.target.value), className: "h-12 rounded-xl", placeholder: "seu@email.com" })
+          /* @__PURE__ */ jsx(Input, { id: "auth-email", type: "email", autoComplete: "email", required: true, maxLength: 255, value: mode === "admin" ? "adm_filadelfiaconecta@gmail.com" : email, readOnly: mode === "admin", onChange: (e) => setEmail(e.target.value), className: "h-12 rounded-xl", placeholder: "seu@email.com" })
         ] }),
         /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
           /* @__PURE__ */ jsx(Label, { htmlFor: "auth-password", children: "Senha" }),
           /* @__PURE__ */ jsx(Input, { id: "auth-password", type: "password", autoComplete: mode === "signup" ? "new-password" : "current-password", required: true, minLength: 8, maxLength: 72, value: password, onChange: (e) => setPassword(e.target.value), className: "h-12 rounded-xl", placeholder: "Mínimo de 8 caracteres" })
         ] }),
-        message && /* @__PURE__ */ jsx(Message, { text: message, danger: !message.startsWith("Confira") }),
+        message && /* @__PURE__ */ jsx(Message, { text: message, danger: !message.startsWith("Confira") && !message.startsWith("Enviamos") }),
         /* @__PURE__ */ jsxs(Button, { size: "touch", className: "w-full", disabled: busy, children: [
           busy && /* @__PURE__ */ jsx(Loader2, { className: "animate-spin" }),
-          mode === "signup" ? "Continuar" : "Entrar"
+          mode === "signup" ? "Continuar" : mode === "admin" ? "Entrar como administrador" : "Entrar"
         ] })
       ] }),
-      /* @__PURE__ */ jsxs("div", { className: "my-5 flex items-center gap-3 text-xs text-muted-foreground", children: [
-        /* @__PURE__ */ jsx("span", { className: "h-px flex-1 bg-border" }),
-        "ou",
-        /* @__PURE__ */ jsx("span", { className: "h-px flex-1 bg-border" })
+      mode === "admin" ? /* @__PURE__ */ jsx(Button, { type: "button", variant: "outline", className: "mt-3 w-full", onClick: prepareAdminAccess, disabled: busy, children: "Primeiro acesso ou esqueci a senha" }) : /* @__PURE__ */ jsxs(Fragment, { children: [
+        /* @__PURE__ */ jsxs("div", { className: "my-5 flex items-center gap-3 text-xs text-muted-foreground", children: [
+          /* @__PURE__ */ jsx("span", { className: "h-px flex-1 bg-border" }),
+          "ou",
+          /* @__PURE__ */ jsx("span", { className: "h-px flex-1 bg-border" })
+        ] }),
+        /* @__PURE__ */ jsx(Button, { type: "button", variant: "outline", size: "touch", className: "w-full", onClick: googleLogin, disabled: busy, children: "Continuar com Google" })
       ] }),
-      /* @__PURE__ */ jsx(Button, { type: "button", variant: "outline", size: "touch", className: "w-full", onClick: googleLogin, disabled: busy, children: "Continuar com Google" }),
+      /* @__PURE__ */ jsxs(Button, { type: "button", variant: "ghost", className: "mt-4 w-full text-primary", onClick: () => {
+        setMode(mode === "admin" ? "login" : "admin");
+        setEmail("");
+        setPassword("");
+        setMessage("");
+      }, children: [
+        /* @__PURE__ */ jsx(ShieldCheck, {}),
+        mode === "admin" ? "Voltar ao acesso de membros" : "Entrar como administrador"
+      ] }),
       /* @__PURE__ */ jsxs("p", { className: "mt-5 text-center text-xs leading-5 text-muted-foreground", children: [
         /* @__PURE__ */ jsx(LockKeyhole, { className: "mr-1 inline size-3" }),
         " Seus dados são protegidos e usados somente para o cuidado da comunidade."
@@ -618,9 +655,19 @@ function Onboarding({ session, onDone }) {
   ] });
 }
 function PageHeader({ title, subtitle, onBack }) {
+  const [showAdminEdit, setShowAdminEdit] = useState(false);
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setShowAdminEdit(data.user?.email?.toLowerCase() === "adm_filadelfiaconecta@gmail.com"));
+  }, []);
   return /* @__PURE__ */ jsx("header", { className: "pastoral-gradient px-5 pb-8 pt-8 text-primary-foreground shadow-pastoral", children: /* @__PURE__ */ jsxs("div", { className: "mx-auto max-w-3xl", children: [
-    /* @__PURE__ */ jsx(Button, { variant: "ghost", size: "sm", onClick: onBack, className: "mb-5 -ml-2 text-base text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground", children: "← Voltar" }),
-    /* @__PURE__ */ jsx("h1", { className: "font-display text-4xl font-bold tracking-tight", children: title }),
+    /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between gap-3", children: [
+      /* @__PURE__ */ jsx(Button, { variant: "ghost", size: "sm", onClick: onBack, className: "-ml-2 text-base text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground", children: "← Voltar" }),
+      showAdminEdit && /* @__PURE__ */ jsxs(Button, { variant: "hero", size: "sm", onClick: () => window.dispatchEvent(new CustomEvent("open-admin-editor")), children: [
+        /* @__PURE__ */ jsx(Pencil, {}),
+        "Editar esta área"
+      ] })
+    ] }),
+    /* @__PURE__ */ jsx("h1", { className: "mt-5 font-display text-4xl font-bold tracking-tight", children: title }),
     subtitle && /* @__PURE__ */ jsx("p", { className: "mt-2 text-base text-primary-foreground/80", children: subtitle })
   ] }) });
 }
@@ -643,15 +690,16 @@ function BirthdayView({ items, signedUrls }) {
     ] }, item.profile_id))
   ] });
 }
-function GalleryView({ profile, session, items, signedUrls, reload }) {
+function GalleryView({ profile, session, items, signedUrls, reload, isAdmin = false }) {
   const [caption, setCaption] = useState("");
   const [file, setFile] = useState(null);
   const [accepted, setAccepted] = useState(false);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   async function submit(event) {
     event.preventDefault();
-    if (!file || caption.trim().length < 3 || !accepted) return setMessage("Escolha uma foto, escreva uma descrição e aceite o termo.");
+    if (!file || caption.trim().length < 3 || !accepted) return setMessage("Escolha uma foto, escreva uma legenda e aceite o termo de responsabilidade.");
     if (!file.type.startsWith("image/") || file.size > 10 * 1024 * 1024) return setMessage("Escolha uma imagem de até 10 MB.");
     setBusy(true);
     const path = `${session.user.id}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "-")}`;
@@ -660,50 +708,92 @@ function GalleryView({ profile, session, items, signedUrls, reload }) {
       setBusy(false);
       return setMessage(up.error.message);
     }
-    const saved = await supabase.from("gallery_items").insert({ uploader_id: session.user.id, uploader_name: profile.full_name, caption: caption.trim(), photo_path: path, responsibility_accepted: true });
+    const saved = await supabase.from("gallery_items").insert({ uploader_id: session.user.id, uploader_name: profile.full_name, caption: caption.trim(), photo_path: path, responsibility_accepted: true, is_approved: true });
     setBusy(false);
     if (saved.error) setMessage(saved.error.message);
     else {
       setCaption("");
       setFile(null);
       setAccepted(false);
-      setMessage("Foto enviada para aprovação da administração.");
+      setMessage("Foto publicada no álbum com seu nome.");
       await reload();
     }
+  }
+  async function saveCaption(item) {
+    const clean = caption.trim();
+    if (clean.length < 3) return setMessage("A legenda precisa ter pelo menos 3 caracteres.");
+    const result = await supabase.from("gallery_items").update({ caption: clean }).eq("id", item.id);
+    setMessage(result.error?.message || "Legenda atualizada.");
+    if (!result.error) {
+      setEditingId(null);
+      setCaption("");
+      await reload();
+    }
+  }
+  async function remove(item) {
+    if (!window.confirm("Excluir esta fotografia do álbum?")) return;
+    const deleted = await supabase.from("gallery_items").delete().eq("id", item.id);
+    if (!deleted.error) await supabase.storage.from("church-gallery").remove([item.photo_path]);
+    setMessage(deleted.error?.message || "Fotografia excluída.");
+    await reload();
   }
   return /* @__PURE__ */ jsxs("div", { className: "mx-auto max-w-3xl px-5 py-6", children: [
     /* @__PURE__ */ jsxs("div", { className: "rounded-2xl border border-gold/30 bg-gold-soft p-4 text-sm leading-6 text-accent-foreground", children: [
       /* @__PURE__ */ jsx(ShieldCheck, { className: "mb-2 text-gold" }),
       /* @__PURE__ */ jsx("strong", { children: "Responsabilidade no envio." }),
-      " As fotografias devem ser exclusivamente de atividades espirituais ou ações que motivem a igreja a louvar e glorificar a Deus. Somente membros verificados podem enviar."
+      " Publique apenas fotos das atividades da igreja e com autorização das pessoas retratadas. Seu nome completo ficará visível em cada publicação."
     ] }),
-    profile.person_kind === "member" && profile.membership_status === "verified" && /* @__PURE__ */ jsxs("form", { onSubmit: submit, className: "my-6 space-y-4 rounded-2xl border bg-card p-4", children: [
-      /* @__PURE__ */ jsx("h2", { className: "font-bold", children: "Compartilhar uma fotografia" }),
-      /* @__PURE__ */ jsx(Input, { type: "file", accept: "image/*", capture: "environment", onChange: (e) => setFile(e.target.files?.[0] ?? null) }),
-      /* @__PURE__ */ jsx(Textarea, { maxLength: 500, value: caption, onChange: (e) => setCaption(e.target.value), placeholder: "Descreva a atividade, culto ou momento..." }),
+    profile.person_kind === "member" && profile.membership_status === "verified" ? /* @__PURE__ */ jsxs("form", { onSubmit: submit, className: "my-6 space-y-4 rounded-2xl border bg-card p-4", children: [
+      /* @__PURE__ */ jsx("h2", { className: "font-bold", children: "Adicionar ao álbum da comunidade" }),
+      /* @__PURE__ */ jsx(Input, { type: "file", accept: "image/*", capture: "environment", required: true, onChange: (e) => setFile(e.target.files?.[0] ?? null) }),
+      /* @__PURE__ */ jsx(Textarea, { required: true, minLength: 3, maxLength: 500, value: caption, onChange: (e) => setCaption(e.target.value), placeholder: "Escreva a legenda da foto..." }),
+      /* @__PURE__ */ jsxs("p", { className: "rounded-xl bg-secondary px-3 py-2 text-xs text-secondary-foreground", children: [
+        "Publicação identificada como: ",
+        /* @__PURE__ */ jsx("strong", { children: profile.full_name })
+      ] }),
       /* @__PURE__ */ jsxs("label", { className: "flex items-start gap-3 text-xs leading-5", children: [
         /* @__PURE__ */ jsx(Checkbox, { checked: accepted, onCheckedChange: (v) => setAccepted(v === true) }),
-        /* @__PURE__ */ jsx("span", { children: "Li e assumo responsabilidade pela imagem e pelas pessoas que aparecem nela." })
+        /* @__PURE__ */ jsx("span", { children: "Confirmo que esta foto é de uma atividade da igreja, tenho autorização para publicá-la e assumo responsabilidade pelo conteúdo." })
       ] }),
-      message && /* @__PURE__ */ jsx(Message, { text: message, danger: !message.startsWith("Foto enviada") }),
+      message && /* @__PURE__ */ jsx(Message, { text: message, danger: !message.includes("publicada") && !message.includes("atualizada") && !message.includes("excluída") }),
       /* @__PURE__ */ jsxs(Button, { disabled: busy, children: [
         busy ? /* @__PURE__ */ jsx(Loader2, { className: "animate-spin" }) : /* @__PURE__ */ jsx(Upload, {}),
-        "Enviar para aprovação"
+        busy ? "Publicando..." : "Publicar foto agora"
       ] })
-    ] }),
-    /* @__PURE__ */ jsx("div", { className: "mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3", children: items.filter((i) => i.is_approved).map((item) => /* @__PURE__ */ jsxs("figure", { className: "overflow-hidden rounded-2xl border bg-card", children: [
-      /* @__PURE__ */ jsx("img", { src: signedUrls[item.photo_path], alt: item.caption, className: "aspect-square w-full object-cover", loading: "lazy" }),
-      /* @__PURE__ */ jsxs("figcaption", { className: "p-3 text-xs leading-5", children: [
-        /* @__PURE__ */ jsx("span", { className: "block font-semibold", children: item.caption }),
-        /* @__PURE__ */ jsxs("span", { className: "text-muted-foreground", children: [
-          "Enviada por ",
-          item.uploader_name
-        ] })
-      ] })
-    ] }, item.id)) })
+    ] }) : /* @__PURE__ */ jsx(Message, { text: "O envio de fotos será liberado assim que o administrador confirmar seu cadastro como membro." }),
+    /* @__PURE__ */ jsx("div", { className: "mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3", children: items.filter((i) => i.is_approved).map((item) => {
+      const canManage = isAdmin || session.user.email?.toLowerCase() === "adm_filadelfiaconecta@gmail.com" || item.uploader_id === session.user.id;
+      return /* @__PURE__ */ jsxs("figure", { className: "overflow-hidden rounded-2xl border bg-card", children: [
+        /* @__PURE__ */ jsx("img", { src: signedUrls[item.photo_path], alt: item.caption, className: "aspect-square w-full object-cover", loading: "lazy" }),
+        /* @__PURE__ */ jsx("figcaption", { className: "p-3 text-xs leading-5", children: editingId === item.id ? /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
+          /* @__PURE__ */ jsx(Textarea, { value: caption, minLength: 3, maxLength: 500, onChange: (e) => setCaption(e.target.value) }),
+          /* @__PURE__ */ jsxs("div", { className: "flex gap-2", children: [
+            /* @__PURE__ */ jsx(Button, { size: "sm", type: "button", onClick: () => saveCaption(item), children: "Salvar" }),
+            /* @__PURE__ */ jsx(Button, { size: "sm", type: "button", variant: "outline", onClick: () => {
+              setEditingId(null);
+              setCaption("");
+            }, children: "Cancelar" })
+          ] })
+        ] }) : /* @__PURE__ */ jsxs(Fragment, { children: [
+          /* @__PURE__ */ jsx("span", { className: "block font-semibold", children: item.caption }),
+          /* @__PURE__ */ jsxs("span", { className: "text-muted-foreground", children: [
+            "Publicado por ",
+            item.uploader_name
+          ] }),
+          canManage && /* @__PURE__ */ jsxs("div", { className: "mt-2 flex gap-1", children: [
+            /* @__PURE__ */ jsx(Button, { type: "button", variant: "outline", size: "icon", className: "size-8", "aria-label": "Editar legenda", onClick: () => {
+              setEditingId(item.id);
+              setCaption(item.caption);
+            }, children: /* @__PURE__ */ jsx(Pencil, { className: "size-3" }) }),
+            /* @__PURE__ */ jsx(Button, { type: "button", variant: "destructive", size: "icon", className: "size-8", "aria-label": "Excluir foto", onClick: () => remove(item), children: /* @__PURE__ */ jsx(Trash2, { className: "size-3" }) })
+          ] })
+        ] }) })
+      ] }, item.id);
+    }) })
   ] });
 }
 function LibraryView({ items, signedUrls, isAdmin, session, reload }) {
+  const adminMutation = useServerFn(runAdminMutation);
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
   const [file, setFile] = useState(null);
@@ -715,15 +805,16 @@ function LibraryView({ items, signedUrls, isAdmin, session, reload }) {
     const path = `${session.user.id}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "-")}`;
     const up = await supabase.storage.from("library-pdfs").upload(path, file, { contentType: "application/pdf" });
     if (up.error) return setMessage(up.error.message);
-    const saved = await supabase.from("library_items").insert({ title: title.trim(), author: author.trim() || null, pdf_path: path, uploaded_by: session.user.id, is_free_licensed: true });
-    if (saved.error) setMessage(saved.error.message);
-    else {
+    try {
+      await adminMutation({ data: { action: "add-library-item", title: title.trim(), author: author.trim() || null, pdfPath: path } });
       setMessage("Livro publicado.");
       setTitle("");
       setAuthor("");
       setFile(null);
       setLicensed(false);
       await reload();
+    } catch {
+      setMessage("Não foi possível publicar o livro.");
     }
   }
   const all = [...staticBooks.map((b, i) => ({ id: `static-${i}`, ...b })), ...items.map((b) => ({ id: b.id, title: b.title, author: b.author || "", url: signedUrls[b.pdf_path] }))];
@@ -755,34 +846,49 @@ function LibraryView({ items, signedUrls, isAdmin, session, reload }) {
   ] });
 }
 function AdminView({ profiles, gallery, societies, devotionals, session, reload }) {
+  const adminMutation = useServerFn(runAdminMutation);
   const [message, setMessage] = useState("");
   const [contentType, setContentType] = useState("notice");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   async function verify(id, status) {
-    const result = await supabase.from("profiles").update({ membership_status: status }).eq("id", id);
-    setMessage(result.error?.message || "Cadastro atualizado.");
-    await reload();
+    try {
+      await adminMutation({ data: { action: "set-member-status", id, status } });
+      setMessage("Cadastro atualizado.");
+      await reload();
+    } catch {
+      setMessage("Não foi possível atualizar o cadastro.");
+    }
   }
   async function approve(id, approved) {
-    const result = await supabase.from("gallery_items").update({ is_approved: approved }).eq("id", id);
-    setMessage(result.error?.message || "Fotografia atualizada.");
-    await reload();
+    try {
+      await adminMutation({ data: { action: "set-gallery-status", id, approved } });
+      setMessage("Fotografia atualizada.");
+      await reload();
+    } catch {
+      setMessage("Não foi possível atualizar a fotografia.");
+    }
   }
   async function saveSociety(id, value) {
-    const result = await supabase.from("society_groups").update({ whatsapp_url: value.trim() || null }).eq("id", id);
-    setMessage(result.error?.message || "Link atualizado.");
-    await reload();
+    try {
+      await adminMutation({ data: { action: "save-society", id, whatsappUrl: value.trim() || null } });
+      setMessage("Link atualizado.");
+      await reload();
+    } catch {
+      setMessage("Não foi possível atualizar o link.");
+    }
   }
   async function createContent(event) {
     event.preventDefault();
-    const result = await supabase.from("church_content").insert({ content_type: contentType, title: title.trim(), body: body.trim() || null, created_by: session.user.id });
-    setMessage(result.error?.message || "Conteúdo publicado.");
-    if (!result.error) {
+    try {
+      await adminMutation({ data: { action: "save-content", id: null, contentType, title: title.trim(), body: body.trim() || null } });
+      setMessage("Conteúdo publicado.");
       setTitle("");
       setBody("");
+      await reload();
+    } catch {
+      setMessage("Não foi possível publicar o conteúdo.");
     }
-    await reload();
   }
   return /* @__PURE__ */ jsxs("div", { className: "mx-auto max-w-3xl space-y-7 px-5 py-6", children: [
     message && /* @__PURE__ */ jsx(Message, { text: message }),
@@ -815,7 +921,7 @@ function AdminView({ profiles, gallery, societies, devotionals, session, reload 
         ] }),
         /* @__PURE__ */ jsxs("div", { className: "mt-3 flex gap-2", children: [
           /* @__PURE__ */ jsx(Button, { size: "sm", onClick: () => approve(g.id, true), children: "Aprovar" }),
-          /* @__PURE__ */ jsx(Button, { size: "sm", variant: "destructive", onClick: () => supabase.from("gallery_items").delete().eq("id", g.id).then(reload), children: "Apagar" })
+          /* @__PURE__ */ jsx(Button, { size: "sm", variant: "destructive", onClick: () => adminMutation({ data: { action: "delete-gallery", id: g.id } }).then(reload), children: "Apagar" })
         ] })
       ] }, g.id)) })
     ] }),
@@ -858,6 +964,7 @@ function AdminView({ profiles, gallery, societies, devotionals, session, reload 
   ] });
 }
 function FiladelfiaApp() {
+  const ensureAdminRole = useServerFn(ensureChurchAdminRole);
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
   const [authReady, setAuthReady] = useState(false);
@@ -874,6 +981,7 @@ function FiladelfiaApp() {
   const [profiles, setProfiles] = useState([]);
   const [signedUrls, setSignedUrls] = useState({});
   async function loadData(userId) {
+    await ensureAdminRole().catch(() => ({ isAdmin: false }));
     const [p, role, b, g, l, s, c, d, prayers] = await Promise.all([supabase.from("profiles").select("*").eq("id", userId).maybeSingle(), supabase.from("user_roles").select("role").eq("user_id", userId).maybeSingle(), supabase.from("birthday_directory").select("*").order("birth_date"), supabase.from("gallery_items").select("*").order("created_at", { ascending: false }), supabase.from("library_items").select("*").order("created_at", { ascending: false }), supabase.from("society_groups").select("*").order("acronym"), supabase.from("church_content").select("*").order("created_at", { ascending: false }), supabase.from("devotionals").select("*").order("devotional_date", { ascending: false }).limit(30), supabase.from("prayer_publications").select("*").order("created_at", { ascending: false })]);
     setProfile(p.data);
     setIsAdmin(role.data?.role === "admin");
@@ -915,6 +1023,14 @@ function FiladelfiaApp() {
       }
     });
     return () => data.subscription.unsubscribe();
+  }, []);
+  useEffect(() => {
+    const openEditor = () => {
+      setDetail("admin");
+      setTab("more");
+    };
+    window.addEventListener("open-admin-editor", openEditor);
+    return () => window.removeEventListener("open-admin-editor", openEditor);
   }, []);
   const nextCult = useMemo(() => ({ day: "Domingo", time: "09h00", title: "Culto de Adoração" }), []);
   if (!authReady) return /* @__PURE__ */ jsx("div", { className: "grid min-h-screen place-items-center bg-background", children: /* @__PURE__ */ jsx(Loader2, { className: "size-7 animate-spin text-primary" }) });

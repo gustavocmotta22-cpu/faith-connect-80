@@ -76,7 +76,7 @@ function getResponse() {
 }
 var HEADERS = { TSS_SHELL: "X-TSS_SHELL" };
 async function getStartManifest(matchedRoutes) {
-  const { tsrStartManifest } = await import("./_tanstack-start-manifest_v-D6S0fnx5.js");
+  const { tsrStartManifest } = await import("./_tanstack-start-manifest_v-BnVfMd4B.js");
   const startManifest = tsrStartManifest();
   let routes = startManifest.routes;
   routes[rootRouteId];
@@ -98,7 +98,15 @@ async function getStartManifest(matchedRoutes) {
 const manifest = {
   "23762cf4884d3884089b1eb2eb0c3bf4edfca9d0fdbb01581c18b8d9fbd54c9f": {
     functionName: "getTodayDevotional_createServerFn_handler",
-    importer: () => import("./devotional.functions-CFni2hh_.js")
+    importer: () => import("./devotional.functions-DzFDevOK.js")
+  },
+  "482160fb7da9422a30997d8d1edf5b0380db76c51a523de7ff71d0b08feeace3": {
+    functionName: "ensureChurchAdminRole_createServerFn_handler",
+    importer: () => import("./admin.functions-8EXHnqa6.js")
+  },
+  "7f1fe6ef732d27112fd53eeb4934121b20106ffe754a469974bd1dbf06a05fe1": {
+    functionName: "runAdminMutation_createServerFn_handler",
+    importer: () => import("./admin.functions-8EXHnqa6.js")
   }
 };
 async function getServerFnById(id, access) {
@@ -1339,8 +1347,8 @@ var getBaseManifest = getProdBaseManifest;
 var createEarlyHintsForRequest = createEarlyHintsCollector;
 async function loadEntries() {
   const [routerEntry, startEntry, pluginAdapters] = await Promise.all([
-    import("./router-DUMfC8-U.js").then((n) => n.r),
-    import("./start-D3lcjvdl.js"),
+    import("./router-CBfMpBMY.js").then((n) => n.r),
+    import("./start-C57kAouI.js"),
     import("./empty-plugin-adapters-BFgPZ6_d.js")
   ]);
   return {
