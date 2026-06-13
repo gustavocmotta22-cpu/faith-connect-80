@@ -20,13 +20,16 @@ import {
   MapPin,
   Menu,
   MessageCircle,
+  Pencil,
   Plus,
   ShieldCheck,
   Sparkles,
   Upload,
   Users,
+  Trash2,
 } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import type { Tables } from "@/integrations/supabase/types";
@@ -42,6 +45,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AdminDevotionals, DevotionalView, type Devotional } from "@/components/devotional-module";
+import { ensureChurchAdminRole } from "@/lib/admin.functions";
 
 type Profile = Tables<"profiles">;
 type Birthday = Tables<"birthday_directory">;
@@ -101,7 +105,7 @@ function Brand({ compact = false }: { compact?: boolean }) {
 }
 
 function AuthScreen() {
-  const [mode, setMode] = useState<"login" | "signup">("signup");
+  const [mode, setMode] = useState<"login" | "signup" | "admin">("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -117,6 +121,17 @@ function AuthScreen() {
     setBusy(false);
     if (result.error) setMessage(result.error.message);
     else if (mode === "signup") setMessage("Confira seu e-mail para confirmar o cadastro e entrar.");
+  }
+
+  async function prepareAdminAccess() {
+    setBusy(true);
+    setMessage("");
+    const adminEmail = "adm_filadelfiaconecta@gmail.com";
+    const randomPassword = `${crypto.randomUUID()}A1!`;
+    await supabase.auth.signUp({ email: adminEmail, password: randomPassword, options: { emailRedirectTo: `${window.location.origin}/reset-password` } });
+    const result = await supabase.auth.resetPasswordForEmail(adminEmail, { redirectTo: `${window.location.origin}/reset-password` });
+    setBusy(false);
+    setMessage(result.error ? result.error.message : "Enviamos um link seguro ao e-mail do administrador para definir a senha. A senha não aparece nem fica salva no aplicativo.");
   }
 
   async function googleLogin() {
@@ -142,13 +157,13 @@ function AuthScreen() {
             <Button type="button" variant={mode === "login" ? "default" : "ghost"} className="h-10 flex-1 rounded-lg" onClick={() => setMode("login")}>Já tenho acesso</Button>
           </div>
           <form className="space-y-4" onSubmit={submit}>
-            <div className="space-y-2"><Label htmlFor="auth-email">E-mail</Label><Input id="auth-email" type="email" autoComplete="email" required maxLength={255} value={email} onChange={(e) => setEmail(e.target.value)} className="h-12 rounded-xl" placeholder="seu@email.com" /></div>
+            <div className="space-y-2"><Label htmlFor="auth-email">E-mail</Label><Input id="auth-email" type="email" autoComplete="email" required maxLength={255} value={mode === "admin" ? "adm_filadelfiaconecta@gmail.com" : email} readOnly={mode === "admin"} onChange={(e) => setEmail(e.target.value)} className="h-12 rounded-xl" placeholder="seu@email.com" /></div>
             <div className="space-y-2"><Label htmlFor="auth-password">Senha</Label><Input id="auth-password" type="password" autoComplete={mode === "signup" ? "new-password" : "current-password"} required minLength={8} maxLength={72} value={password} onChange={(e) => setPassword(e.target.value)} className="h-12 rounded-xl" placeholder="Mínimo de 8 caracteres" /></div>
-            {message && <Message text={message} danger={!message.startsWith("Confira")} />}
-            <Button size="touch" className="w-full" disabled={busy}>{busy && <Loader2 className="animate-spin" />}{mode === "signup" ? "Continuar" : "Entrar"}</Button>
+            {message && <Message text={message} danger={!message.startsWith("Confira") && !message.startsWith("Enviamos")} />}
+            <Button size="touch" className="w-full" disabled={busy}>{busy && <Loader2 className="animate-spin" />}{mode === "signup" ? "Continuar" : mode === "admin" ? "Entrar como administrador" : "Entrar"}</Button>
           </form>
-          <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border" />ou<span className="h-px flex-1 bg-border" /></div>
-          <Button type="button" variant="outline" size="touch" className="w-full" onClick={googleLogin} disabled={busy}>Continuar com Google</Button>
+          {mode === "admin" ? <Button type="button" variant="outline" className="mt-3 w-full" onClick={prepareAdminAccess} disabled={busy}>Primeiro acesso ou esqueci a senha</Button> : <><div className="my-5 flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border" />ou<span className="h-px flex-1 bg-border" /></div><Button type="button" variant="outline" size="touch" className="w-full" onClick={googleLogin} disabled={busy}>Continuar com Google</Button></>}
+          <Button type="button" variant="ghost" className="mt-4 w-full text-primary" onClick={() => { setMode(mode === "admin" ? "login" : "admin"); setEmail(""); setPassword(""); setMessage(""); }}><ShieldCheck />{mode === "admin" ? "Voltar ao acesso de membros" : "Entrar como administrador"}</Button>
           <p className="mt-5 text-center text-xs leading-5 text-muted-foreground"><LockKeyhole className="mr-1 inline size-3" /> Seus dados são protegidos e usados somente para o cuidado da comunidade.</p>
         </div>
       </section>
