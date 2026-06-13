@@ -1,10 +1,10 @@
 import { jsx, jsxs, Fragment } from "react/jsx-runtime";
 import * as React from "react";
 import { useState, useEffect, useMemo, useRef } from "react";
-import { Check, Loader2, LogOut, Home, Church, Users, Library, Menu, LockKeyhole, HeartHandshake, Camera, Images, ShieldCheck, Upload, MessageCircle, Gift, CheckCircle2, Plus, BookOpen, CalendarDays, Bell, Sparkles, MapPin, Download, ChevronRight } from "lucide-react";
+import { Check, Loader2, LogOut, Home, Church, Users, Library, Menu, LockKeyhole, HeartHandshake, Camera, Images, ShieldCheck, Upload, MessageCircle, UserRound, Gift, CheckCircle2, Plus, BookOpen, CalendarDays, Bell, Sparkles, MapPin, Download, ChevronRight } from "lucide-react";
 import { s as supabase } from "./client-ycPsap7o.js";
 import { createLovableAuth } from "@lovable.dev/cloud-auth-js";
-import { c as cn, B as Button } from "./router-BsC2TVJp.js";
+import { c as cn, B as Button } from "./router-drL0Y-lb.js";
 import * as LabelPrimitive from "@radix-ui/react-label";
 import { cva } from "class-variance-authority";
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
@@ -647,12 +647,12 @@ function FiladelfiaApp() {
   } });
   const reload = () => loadData(session.user.id);
   if (detail) return /* @__PURE__ */ jsxs("main", { className: "min-h-screen bg-background pb-10", children: [
-    /* @__PURE__ */ jsx(PageHeader, { title: detail === "birthdays" ? "Aniversariantes" : detail === "gallery" ? "Aconteceu e Foi Bom" : detail === "prayer" ? "Pedidos de Oração" : detail === "social" ? "Ação Social" : detail === "location" ? "Como chegar" : detail === "pastor" ? "Fale com o Pastor" : detail === "council" ? "Conselho da Igreja" : detail === "devotional" ? "Devocional" : detail === "agenda" ? "Agenda" : detail === "notices" ? "Avisos" : detail === "offering" ? "Dízimos e Ofertas" : "Central Administrativa", subtitle: detail === "gallery" ? "Memórias que testemunham a graça de Deus" : detail === "social" ? "Uma igreja em movimento, servindo ao próximo" : void 0, onBack: () => setDetail(null) }),
+    /* @__PURE__ */ jsx(PageHeader, { title: detail === "birthdays" ? "Aniversariantes" : detail === "gallery" ? "Aconteceu e Foi Bom" : detail === "prayer" ? "Pedidos de Oração" : detail === "social" ? "Ação Social" : detail === "location" ? "Como chegar" : detail === "pastor" ? "Fale com o Pastor" : detail === "council" ? "Fale com o Conselho" : detail === "devotional" ? "Devocional" : detail === "agenda" ? "Agenda" : detail === "notices" ? "Avisos" : detail === "offering" ? "Dízimos e Ofertas" : "Central Administrativa", subtitle: detail === "gallery" ? "Memórias que testemunham a graça de Deus" : detail === "social" ? "Uma igreja em movimento, servindo ao próximo" : void 0, onBack: () => setDetail(null) }),
     detail === "birthdays" && /* @__PURE__ */ jsx(BirthdayView, { items: birthdays, signedUrls }),
     detail === "gallery" && /* @__PURE__ */ jsx(GalleryView, { profile, session, items: gallery, signedUrls, reload }),
     detail === "prayer" && /* @__PURE__ */ jsx(PrayerView, { session, profile, publicPrayers, reload }),
     detail === "pastor" && /* @__PURE__ */ jsx(ContactView, { title: "Rev. Rafael", description: "Converse com o pastor para aconselhamento, cuidado espiritual ou oração." }),
-    detail === "council" && /* @__PURE__ */ jsx(ContactView, { title: "Conselho da Igreja", description: "Envie sua mensagem para acompanhamento e cuidado do Conselho." }),
+    detail === "council" && /* @__PURE__ */ jsx(CouncilView, {}),
     detail === "devotional" && /* @__PURE__ */ jsx(ContentView, { type: "devotional", empty: "Nenhum devocional publicado no momento.", content }),
     detail === "agenda" && /* @__PURE__ */ jsx(ContentView, { type: "event", empty: "Nenhum evento publicado no momento.", content }),
     detail === "notices" && /* @__PURE__ */ jsx(ContentView, { type: "notice", empty: "Nenhum aviso publicado no momento.", content }),
@@ -854,6 +854,29 @@ function ContactView({ title, description }) {
     ] }) }),
     /* @__PURE__ */ jsx("p", { className: "mt-4 text-center text-sm font-semibold text-muted-foreground", children: "Telefone: (21) 98736-1216" })
   ] }) });
+}
+function CouncilView() {
+  const members = [
+    { name: "Rev. Rafael Ribeiro", role: "Pastor · Presidente do Conselho", phone: "5521987361216" },
+    { name: "Presbítero Ailson", role: "Presbítero Regente", phone: "5521991571376" },
+    { name: "Presbítero Osvaldo", role: "Presbítero Regente", phone: "5521998461235" },
+    { name: "Presbítero Gustavo", role: "Presbítero Regente", phone: "5521989290880" }
+  ];
+  return /* @__PURE__ */ jsxs("div", { className: "mx-auto max-w-3xl px-5 py-6", children: [
+    /* @__PURE__ */ jsx("p", { className: "text-center text-sm leading-6 text-muted-foreground", children: "Abra o WhatsApp para falar diretamente com cada membro do Conselho." }),
+    /* @__PURE__ */ jsx("h2", { className: "mb-4 mt-7 font-display text-2xl font-bold text-primary", children: "Membros do Conselho" }),
+    /* @__PURE__ */ jsx("div", { className: "space-y-4", children: members.map((member) => /* @__PURE__ */ jsxs("article", { className: "flex items-center gap-4 rounded-3xl border bg-card p-4 shadow-sm", children: [
+      /* @__PURE__ */ jsx("div", { className: "grid size-20 shrink-0 place-items-center rounded-full border-4 border-secondary bg-muted text-primary", children: /* @__PURE__ */ jsx(UserRound, { className: "size-9" }) }),
+      /* @__PURE__ */ jsxs("div", { className: "min-w-0 flex-1", children: [
+        /* @__PURE__ */ jsx("h3", { className: "font-display text-xl font-bold leading-tight text-primary", children: member.name }),
+        /* @__PURE__ */ jsx("p", { className: "mt-1 text-sm text-muted-foreground", children: member.role }),
+        /* @__PURE__ */ jsx(Button, { asChild: true, size: "sm", className: "mt-3 rounded-xl", children: /* @__PURE__ */ jsxs("a", { href: `https://wa.me/${member.phone}`, target: "_blank", rel: "noreferrer", "aria-label": `Conversar com ${member.name} no WhatsApp`, children: [
+          /* @__PURE__ */ jsx(MessageCircle, {}),
+          "WhatsApp"
+        ] }) })
+      ] })
+    ] }, member.name)) })
+  ] });
 }
 function OfferingView() {
   return /* @__PURE__ */ jsxs("div", { className: "mx-auto max-w-3xl px-5 py-6", children: [
