@@ -4,9 +4,9 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { Check, Loader2, LogOut, Home, Church, Users, Library, Menu, LockKeyhole, HeartHandshake, Camera, Images, ShieldCheck, Upload, CheckCircle2, Plus, Gift, Sparkles, MapPin, ChevronRight, Bell, MessageCircle, BookOpen, Download } from "lucide-react";
 import { s as supabase } from "./client-ycPsap7o.js";
 import { createLovableAuth } from "@lovable.dev/cloud-auth-js";
-import { T as TSS_SERVER_FUNCTION, g as getServerFnById, a as createServerFn } from "./server-BvdiZZTW.js";
-import { r as requireSupabaseAuth } from "./auth-middleware-C3RV4CQq.js";
-import { c as cn, B as Button } from "./router-Bqxy_SZJ.js";
+import { T as TSS_SERVER_FUNCTION, g as getServerFnById, a as createServerFn } from "./server-w3z_Fj_7.js";
+import { r as requireSupabaseAuth } from "./auth-middleware-NK-umOyx.js";
+import { c as cn, B as Button } from "./router-CANOqaDn.js";
 import * as LabelPrimitive from "@radix-ui/react-label";
 import { cva } from "class-variance-authority";
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
@@ -618,11 +618,12 @@ function FiladelfiaApp() {
   const [books, setBooks] = useState([]);
   const [societies, setSocieties] = useState([]);
   const [content, setContent] = useState([]);
+  const [publicPrayers, setPublicPrayers] = useState([]);
   const [profiles, setProfiles] = useState([]);
   const [signedUrls, setSignedUrls] = useState({});
   async function loadData(userId) {
     await ensureChurchAdminRole();
-    const [p, role, b, g, l, s, c] = await Promise.all([supabase.from("profiles").select("*").eq("id", userId).maybeSingle(), supabase.from("user_roles").select("role").eq("user_id", userId).maybeSingle(), supabase.from("birthday_directory").select("*").order("birth_date"), supabase.from("gallery_items").select("*").order("created_at", { ascending: false }), supabase.from("library_items").select("*").order("created_at", { ascending: false }), supabase.from("society_groups").select("*").order("acronym"), supabase.from("church_content").select("*").order("created_at", { ascending: false })]);
+    const [p, role, b, g, l, s, c, prayers] = await Promise.all([supabase.from("profiles").select("*").eq("id", userId).maybeSingle(), supabase.from("user_roles").select("role").eq("user_id", userId).maybeSingle(), supabase.from("birthday_directory").select("*").order("birth_date"), supabase.from("gallery_items").select("*").order("created_at", { ascending: false }), supabase.from("library_items").select("*").order("created_at", { ascending: false }), supabase.from("society_groups").select("*").order("acronym"), supabase.from("church_content").select("*").order("created_at", { ascending: false }), supabase.from("prayer_publications").select("*").order("created_at", { ascending: false })]);
     setProfile(p.data);
     setIsAdmin(role.data?.role === "admin");
     setBirthdays(b.data || []);
@@ -630,6 +631,7 @@ function FiladelfiaApp() {
     setBooks(l.data || []);
     setSocieties(s.data || []);
     setContent(c.data || []);
+    setPublicPrayers(prayers.data || []);
     if (role.data?.role === "admin") {
       const all = await supabase.from("profiles").select("*").order("created_at", { ascending: false });
       setProfiles(all.data || []);
@@ -671,10 +673,10 @@ function FiladelfiaApp() {
   } });
   const reload = () => loadData(session.user.id);
   if (detail) return /* @__PURE__ */ jsxs("main", { className: "min-h-screen bg-background pb-10", children: [
-    /* @__PURE__ */ jsx(PageHeader, { title: detail === "birthdays" ? "Aniversariantes" : detail === "gallery" ? "Aconteceu e Foi Bom" : detail === "prayer" ? "Pedido de Oração" : detail === "social" ? "Ação Social" : detail === "location" ? "Como chegar" : "Central Administrativa", subtitle: detail === "gallery" ? "Memórias que testemunham a graça de Deus" : detail === "social" ? "Uma igreja em movimento, servindo ao próximo" : void 0, onBack: () => setDetail(null) }),
+    /* @__PURE__ */ jsx(PageHeader, { title: detail === "birthdays" ? "Aniversariantes" : detail === "gallery" ? "Aconteceu e Foi Bom" : detail === "prayer" ? "Pedidos de Oração" : detail === "social" ? "Ação Social" : detail === "location" ? "Como chegar" : "Central Administrativa", subtitle: detail === "gallery" ? "Memórias que testemunham a graça de Deus" : detail === "social" ? "Uma igreja em movimento, servindo ao próximo" : void 0, onBack: () => setDetail(null) }),
     detail === "birthdays" && /* @__PURE__ */ jsx(BirthdayView, { items: birthdays, signedUrls }),
     detail === "gallery" && /* @__PURE__ */ jsx(GalleryView, { profile, session, items: gallery, signedUrls, reload }),
-    detail === "prayer" && /* @__PURE__ */ jsx(PrayerView, { session }),
+    detail === "prayer" && /* @__PURE__ */ jsx(PrayerView, { session, profile, publicPrayers, reload }),
     detail === "social" && /* @__PURE__ */ jsxs("div", { className: "mx-auto max-w-3xl space-y-5 px-5 py-6", children: [
       /* @__PURE__ */ jsxs("article", { className: "overflow-hidden rounded-3xl border bg-card shadow-pastoral", children: [
         /* @__PURE__ */ jsx("img", { src: socialActionAsset.url, alt: "Curso de costura e modelagem para iniciantes — Talentos do Reino", className: "aspect-[3/2] w-full object-cover" }),
@@ -745,36 +747,112 @@ function FiladelfiaApp() {
     ] }, id)) }) })
   ] });
 }
-function PrayerView({ session }) {
+function PrayerView({ session, profile, publicPrayers, reload }) {
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
+  const [phone, setPhone] = useState("");
+  const [isPublic, setIsPublic] = useState(true);
+  const [showName, setShowName] = useState(true);
+  const [directedTo, setDirectedTo] = useState("conselho");
   const [status, setStatus] = useState("");
+  const [busy, setBusy] = useState(false);
   async function submit(e) {
     e.preventDefault();
-    const r = await supabase.from("prayer_requests").insert({ requester_id: session.user.id, subject: subject.trim(), message: message.trim(), is_private: true });
-    setStatus(r.error?.message || "Pedido enviado. Estaremos orando por você.");
-    if (!r.error) {
-      setSubject("");
-      setMessage("");
-    }
+    const cleanSubject = subject.trim();
+    const cleanMessage = message.trim();
+    const cleanPhone = phone.replace(/[^0-9+()\-\s]/g, "").trim();
+    if (cleanSubject.length < 3 || cleanMessage.length < 5) return setStatus("Escreva o assunto e o pedido de oração.");
+    if (cleanPhone && cleanPhone.replace(/\D/g, "").length < 8) return setStatus("Confira o telefone ou deixe o campo vazio.");
+    setBusy(true);
+    setStatus("");
+    const saved = await supabase.from("prayer_requests").insert({
+      requester_id: session.user.id,
+      requester_name: showName ? profile.full_name : null,
+      subject: cleanSubject,
+      message: cleanMessage,
+      is_private: !isPublic,
+      publication_status: isPublic ? "published" : "private",
+      directed_to: directedTo,
+      contact_phone: cleanPhone || null,
+      contact_authorized: Boolean(cleanPhone)
+    });
+    setBusy(false);
+    if (saved.error) return setStatus("Não foi possível enviar agora. Tente novamente.");
+    const destination = directedTo === "pastor" ? "Pastor" : directedTo === "igreja" ? "Igreja" : "Conselho";
+    const whatsappText = [
+      "*Novo pedido de oração — Filadélfia Conecta*",
+      `Destino: ${destination}`,
+      `Nome: ${showName ? profile.full_name : "Não informado"}`,
+      `Assunto: ${cleanSubject}`,
+      `Pedido: ${cleanMessage}`,
+      `Telefone para contato: ${cleanPhone || "Não compartilhado"}`,
+      `Visibilidade: ${isPublic ? "Público no mural de oração" : "Reservado"}`
+    ].join("\n");
+    setSubject("");
+    setMessage("");
+    setPhone("");
+    setStatus("Pedido registrado. O WhatsApp será aberto para encaminhamento ao cuidado pastoral.");
+    await reload();
+    window.location.assign(`https://wa.me/5521987361216?text=${encodeURIComponent(whatsappText)}`);
   }
-  return /* @__PURE__ */ jsxs("form", { onSubmit: submit, className: "mx-auto max-w-3xl space-y-4 px-5 py-6", children: [
-    /* @__PURE__ */ jsxs("blockquote", { className: "rounded-2xl bg-secondary p-5 font-display text-lg leading-7 text-secondary-foreground", children: [
-      "“Em tudo sejam os vossos pedidos conhecidos diante de Deus.”",
-      /* @__PURE__ */ jsx("footer", { className: "mt-2 font-sans text-xs font-bold", children: "Filipenses 4:6" })
+  return /* @__PURE__ */ jsxs("div", { className: "mx-auto max-w-3xl space-y-8 px-5 py-6", children: [
+    /* @__PURE__ */ jsxs("form", { onSubmit: submit, className: "space-y-5", children: [
+      /* @__PURE__ */ jsxs("blockquote", { className: "rounded-2xl bg-secondary p-5 font-display text-lg leading-7 text-secondary-foreground", children: [
+        "“Em tudo sejam os vossos pedidos conhecidos diante de Deus.”",
+        /* @__PURE__ */ jsx("footer", { className: "mt-2 font-sans text-xs font-bold", children: "Filipenses 4:6" })
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
+        /* @__PURE__ */ jsx(Label, { htmlFor: "prayer-subject", children: "Assunto" }),
+        /* @__PURE__ */ jsx(Input, { id: "prayer-subject", required: true, minLength: 3, maxLength: 160, value: subject, onChange: (e) => setSubject(e.target.value), placeholder: "Por quem ou pelo que devemos orar?" })
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
+        /* @__PURE__ */ jsx(Label, { htmlFor: "prayer-message", children: "Seu pedido" }),
+        /* @__PURE__ */ jsx(Textarea, { id: "prayer-message", required: true, minLength: 5, maxLength: 3e3, className: "min-h-36", value: message, onChange: (e) => setMessage(e.target.value), placeholder: "Escreva aqui seu pedido de oração..." })
+      ] }),
+      /* @__PURE__ */ jsxs("fieldset", { className: "space-y-3", children: [
+        /* @__PURE__ */ jsx("legend", { className: "text-sm font-bold", children: "Quem deve receber este pedido?" }),
+        /* @__PURE__ */ jsx("div", { className: "grid grid-cols-1 gap-2 sm:grid-cols-3", children: [["conselho", "Conselho"], ["pastor", "Pastor"], ["igreja", "Toda a igreja"]].map(([value, label]) => /* @__PURE__ */ jsx(Button, { type: "button", variant: directedTo === value ? "default" : "outline", onClick: () => setDirectedTo(value), children: label }, value)) })
+      ] }),
+      /* @__PURE__ */ jsxs("fieldset", { className: "rounded-2xl border bg-card p-4", children: [
+        /* @__PURE__ */ jsx("legend", { className: "px-1 text-sm font-bold", children: "Este pedido pode aparecer no mural?" }),
+        /* @__PURE__ */ jsxs("div", { className: "mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2", children: [
+          /* @__PURE__ */ jsx(Button, { type: "button", variant: isPublic ? "default" : "outline", onClick: () => setIsPublic(true), children: "Sim, pedido público" }),
+          /* @__PURE__ */ jsx(Button, { type: "button", variant: !isPublic ? "default" : "outline", onClick: () => setIsPublic(false), children: "Não, pedido reservado" })
+        ] }),
+        isPublic && /* @__PURE__ */ jsxs("label", { className: "mt-4 flex items-center gap-3 text-sm", children: [
+          /* @__PURE__ */ jsx(Checkbox, { checked: showName, onCheckedChange: (value) => setShowName(value === true) }),
+          /* @__PURE__ */ jsx("span", { children: "Mostrar meu nome junto ao pedido público" })
+        ] }),
+        /* @__PURE__ */ jsx("p", { className: "mt-3 text-xs leading-5 text-muted-foreground", children: "Seu telefone nunca será publicado no mural." })
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "space-y-2 rounded-2xl bg-gold-soft p-4", children: [
+        /* @__PURE__ */ jsx(Label, { htmlFor: "prayer-phone", children: "Telefone para contato (opcional)" }),
+        /* @__PURE__ */ jsx("p", { className: "text-sm leading-6 text-accent-foreground", children: "Deseja compartilhar seu telefone para que as pessoas responsáveis entrem em contato, conversem e orem pessoalmente com você?" }),
+        /* @__PURE__ */ jsx(Input, { id: "prayer-phone", type: "tel", inputMode: "tel", maxLength: 24, value: phone, onChange: (e) => setPhone(e.target.value), placeholder: "(21) 99999-9999 — opcional" }),
+        /* @__PURE__ */ jsx("p", { className: "text-xs text-accent-foreground", children: "Deixe em branco se não desejar receber contato." })
+      ] }),
+      status && /* @__PURE__ */ jsx(Message, { text: status, danger: status.startsWith("Não") || status.startsWith("Confira") || status.startsWith("Escreva") }),
+      /* @__PURE__ */ jsxs(Button, { size: "touch", className: "w-full", disabled: busy, children: [
+        busy ? /* @__PURE__ */ jsx(Loader2, { className: "animate-spin" }) : /* @__PURE__ */ jsx(HeartHandshake, {}),
+        busy ? "Enviando..." : "Enviar pedido de oração"
+      ] })
     ] }),
-    /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
-      /* @__PURE__ */ jsx(Label, { htmlFor: "prayer-subject", children: "Assunto" }),
-      /* @__PURE__ */ jsx(Input, { id: "prayer-subject", required: true, minLength: 3, maxLength: 160, value: subject, onChange: (e) => setSubject(e.target.value) })
-    ] }),
-    /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
-      /* @__PURE__ */ jsx(Label, { htmlFor: "prayer-message", children: "Seu pedido" }),
-      /* @__PURE__ */ jsx(Textarea, { id: "prayer-message", required: true, minLength: 5, maxLength: 3e3, className: "min-h-36", value: message, onChange: (e) => setMessage(e.target.value) })
-    ] }),
-    status && /* @__PURE__ */ jsx(Message, { text: status }),
-    /* @__PURE__ */ jsxs(Button, { size: "touch", children: [
-      /* @__PURE__ */ jsx(HeartHandshake, {}),
-      "Enviar pedido"
+    /* @__PURE__ */ jsxs("section", { "aria-labelledby": "prayer-wall-title", children: [
+      /* @__PURE__ */ jsxs("div", { className: "mb-4", children: [
+        /* @__PURE__ */ jsx("p", { className: "text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground", children: "Comunidade em oração" }),
+        /* @__PURE__ */ jsx("h2", { id: "prayer-wall-title", className: "font-display text-3xl font-bold text-primary", children: "Pedidos públicos" }),
+        /* @__PURE__ */ jsx("p", { className: "mt-1 text-sm text-muted-foreground", children: "Ore por uma necessidade específica da nossa comunidade." })
+      ] }),
+      /* @__PURE__ */ jsx("div", { className: "space-y-3", children: publicPrayers.length === 0 ? /* @__PURE__ */ jsx(Message, { text: "Ainda não há pedidos públicos. Você pode ser a primeira pessoa a compartilhar." }) : publicPrayers.map((prayer) => /* @__PURE__ */ jsxs("article", { className: "rounded-2xl border bg-card p-5 shadow-sm", children: [
+        /* @__PURE__ */ jsxs("div", { className: "flex items-start justify-between gap-3", children: [
+          /* @__PURE__ */ jsxs("div", { children: [
+            /* @__PURE__ */ jsx("h3", { className: "font-bold text-primary", children: prayer.subject }),
+            /* @__PURE__ */ jsx("p", { className: "text-xs text-muted-foreground", children: prayer.requester_name })
+          ] }),
+          /* @__PURE__ */ jsx("span", { className: "shrink-0 rounded-full bg-secondary px-3 py-1 text-xs font-bold text-secondary-foreground", children: "🙏 Orando" })
+        ] }),
+        /* @__PURE__ */ jsx("p", { className: "mt-3 whitespace-pre-wrap text-sm leading-6 text-muted-foreground", children: prayer.message })
+      ] }, prayer.prayer_request_id)) })
     ] })
   ] });
 }
