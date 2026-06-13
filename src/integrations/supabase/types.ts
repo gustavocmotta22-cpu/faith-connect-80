@@ -80,6 +80,57 @@ export type Database = {
         }
         Relationships: []
       }
+      devotionals: {
+        Row: {
+          application: string
+          author: string | null
+          bible_version: string
+          created_at: string
+          created_by: string | null
+          devotional_date: string
+          id: string
+          prayer: string | null
+          reflection: string
+          source: string
+          title: string
+          updated_at: string
+          verse_reference: string
+          verse_text: string
+        }
+        Insert: {
+          application: string
+          author?: string | null
+          bible_version?: string
+          created_at?: string
+          created_by?: string | null
+          devotional_date: string
+          id?: string
+          prayer?: string | null
+          reflection: string
+          source?: string
+          title: string
+          updated_at?: string
+          verse_reference: string
+          verse_text: string
+        }
+        Update: {
+          application?: string
+          author?: string | null
+          bible_version?: string
+          created_at?: string
+          created_by?: string | null
+          devotional_date?: string
+          id?: string
+          prayer?: string | null
+          reflection?: string
+          source?: string
+          title?: string
+          updated_at?: string
+          verse_reference?: string
+          verse_text?: string
+        }
+        Relationships: []
+      }
       gallery_items: {
         Row: {
           caption: string
