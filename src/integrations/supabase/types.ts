@@ -154,29 +154,44 @@ export type Database = {
       }
       prayer_requests: {
         Row: {
+          contact_authorized: boolean
+          contact_phone: string | null
           created_at: string
+          directed_to: string
           id: string
           is_private: boolean
           message: string
+          publication_status: string
           requester_id: string
+          requester_name: string | null
           subject: string
           updated_at: string
         }
         Insert: {
+          contact_authorized?: boolean
+          contact_phone?: string | null
           created_at?: string
+          directed_to?: string
           id?: string
           is_private?: boolean
           message: string
+          publication_status?: string
           requester_id: string
+          requester_name?: string | null
           subject: string
           updated_at?: string
         }
         Update: {
+          contact_authorized?: boolean
+          contact_phone?: string | null
           created_at?: string
+          directed_to?: string
           id?: string
           is_private?: boolean
           message?: string
+          publication_status?: string
           requester_id?: string
+          requester_name?: string | null
           subject?: string
           updated_at?: string
         }
@@ -289,7 +304,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_public_prayer_requests: {
+        Args: never
+        Returns: {
+          created_at: string
+          id: string
+          message: string
+          requester_name: string
+          subject: string
+        }[]
+      }
     }
     Enums: {
       app_role: "admin"
