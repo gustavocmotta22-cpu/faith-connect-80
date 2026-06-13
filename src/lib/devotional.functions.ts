@@ -11,10 +11,10 @@ const BibleVerseSchema = z.object({
 });
 
 const GeneratedDevotionalSchema = z.object({
-  title: z.string().min(2).max(160),
-  reflection: z.string().min(2).max(10000),
-  application: z.string().min(2).max(5000),
-  prayer: z.string().min(2).max(5000),
+  titulo: z.string().min(2).max(160),
+  reflexao: z.string().min(2).max(10000),
+  aplicacao: z.string().min(2).max(5000),
+  oracao: z.string().min(2).max(5000),
 });
 
 const araFallbackVerses = [
@@ -79,7 +79,7 @@ export const getTodayDevotional = createServerFn({ method: "POST" })
       model: gateway("google/gemini-3-flash-preview"),
       output: Output.object({ schema: GeneratedDevotionalSchema }),
       system: "Você escreve devocionais cristãos reformados, fiéis ao texto bíblico e acolhedores. Nunca altere, complete ou parafraseie o versículo informado.",
-      prompt: `Crie um devocional em português brasileiro baseado exclusivamente neste versículo da versão ARA: “${verse.text}” (${reference}). Produza título, reflexão meditativa, uma aplicação prática e específica para hoje, e uma oração breve. Não repita o versículo nos campos gerados.`,
+      prompt: `Crie um devocional em português brasileiro baseado exclusivamente neste versículo da versão ARA: “${verse.text}” (${reference}). Produza titulo, reflexao meditativa, uma aplicacao prática e específica para hoje, e uma oracao breve. Não repita o versículo nos campos gerados.`,
     });
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -87,12 +87,12 @@ export const getTodayDevotional = createServerFn({ method: "POST" })
       .from("devotionals")
       .upsert({
         devotional_date: today,
-        title: output.title,
+        title: output.titulo,
         verse_text: verse.text,
         verse_reference: reference,
-        reflection: output.reflection,
-        application: output.application,
-        prayer: output.prayer,
+        reflection: output.reflexao,
+        application: output.aplicacao,
+        prayer: output.oracao,
         author: "Gerado com Gemini",
         bible_version: "ARA",
         source: "generated",
