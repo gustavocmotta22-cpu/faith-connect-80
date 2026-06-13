@@ -110,16 +110,16 @@ export const runAdminMutation = createServerFn({ method: "POST" })
         ? await supabaseAdmin.from("church_content").update(payload).eq("id", data.id)
         : await supabaseAdmin.from("church_content").insert(payload));
     }
-    if (data.action === "add-library-item")
-      ({ error } = await supabaseAdmin
-        .from("library_items")
-        .insert({
-          title: data.title,
-          author: data.author,
-          pdf_path: data.pdfPath,
-          uploaded_by: context.userId,
-          is_free_licensed: true,
-        }));
+    if (data.action === "add-library-item") {
+      const result = await supabaseAdmin.from("library_items").insert({
+        title: data.title,
+        author: data.author,
+        pdf_path: data.pdfPath,
+        uploaded_by: context.userId,
+        is_free_licensed: true,
+      });
+      error = result.error;
+    }
     if (error) throw new Error(error.message);
     return { ok: true };
   });
