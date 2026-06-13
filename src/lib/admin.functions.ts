@@ -48,8 +48,8 @@ export const runAdminMutation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => AdminMutationSchema.parse(input))
   .handler(async ({ data, context }) => {
-    const { data: allowed } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
-    if (!allowed) throw new Error("Acesso administrativo não autorizado.");
+    const { data: role } = await context.supabase.from("user_roles").select("role").eq("user_id", context.userId).eq("role", "admin").maybeSingle();
+    if (role?.role !== "admin") throw new Error("Acesso administrativo não autorizado.");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     let error: { message: string } | null = null;
     if (data.action === "set-member-status") ({ error } = await supabaseAdmin.from("profiles").update({ membership_status: data.status }).eq("id", data.id));
