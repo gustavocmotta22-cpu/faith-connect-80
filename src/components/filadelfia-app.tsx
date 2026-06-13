@@ -318,7 +318,7 @@ function PrayerView({ session, profile, publicPrayers, reload }: { session: Sess
     setPhone("");
     setStatus("Pedido registrado. O WhatsApp será aberto para encaminhamento ao cuidado pastoral.");
     await reload();
-    window.open(`https://wa.me/5521987361216?text=${encodeURIComponent(whatsappText)}`, "_blank", "noopener,noreferrer");
+    window.location.assign(`https://wa.me/5521987361216?text=${encodeURIComponent(whatsappText)}`);
   }
 
   return <div className="mx-auto max-w-3xl space-y-8 px-5 py-6">
