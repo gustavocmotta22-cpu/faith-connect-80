@@ -17,6 +17,27 @@ const GeneratedDevotionalSchema = z.object({
   oracao: z.string().min(2).max(5000),
 });
 
+function parseGeneratedDevotional(rawText: string) {
+  const withoutFences = rawText.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
+  const objectStart = withoutFences.indexOf("{");
+  const objectEnd = withoutFences.lastIndexOf("}");
+  if (objectStart < 0 || objectEnd <= objectStart) return null;
+
+  try {
+    const raw = JSON.parse(withoutFences.slice(objectStart, objectEnd + 1)) as Record<string, unknown>;
+    const normalized = {
+      titulo: raw.titulo ?? raw.title,
+      reflexao: raw.reflexao ?? raw.reflection,
+      aplicacao: raw.aplicacao ?? raw.application,
+      oracao: raw.oracao ?? raw.prayer,
+    };
+    const parsed = GeneratedDevotionalSchema.safeParse(normalized);
+    return parsed.success ? parsed.data : null;
+  } catch {
+    return null;
+  }
+}
+
 const araFallbackVerses = [
   { book: { name: "Salmos" }, chapter: 46, number: 1, text: "Deus é o nosso refúgio e fortaleza, socorro bem-presente nas tribulações." },
   { book: { name: "Salmos" }, chapter: 119, number: 105, text: "Lâmpada para os meus pés é a tua palavra e, luz para os meus caminhos." },
@@ -70,17 +91,27 @@ export const getTodayDevotional = createServerFn({ method: "POST" })
 
     const key = process.env.LOVABLE_API_KEY;
     if (!key) throw new Error("A geração do devocional está temporariamente indisponível.");
-    const [{ generateText, Output }, { createLovableAiGatewayProvider }] = await Promise.all([
+    const [{ generateText }, { createLovableAiGatewayProvider }] = await Promise.all([
       import("ai"),
       import("@/lib/ai-gateway.server"),
     ]);
     const gateway = createLovableAiGatewayProvider(key);
-    const { output } = await generateText({
+    const prompt = `Crie um devocional em português brasileiro baseado exclusivamente neste versículo da versão ARA: “${verse.text}” (${reference}). Não repita o versículo nos campos gerados. Responda somente com um objeto JSON válido, sem markdown nem texto adicional, usando exatamente estas quatro chaves: "titulo", "reflexao", "aplicacao" e "oracao".`;
+    const firstResult = await generateText({
       model: gateway("google/gemini-3-flash-preview"),
-      output: Output.object({ schema: GeneratedDevotionalSchema }),
       system: "Você escreve devocionais cristãos reformados, fiéis ao texto bíblico e acolhedores. Nunca altere, complete ou parafraseie o versículo informado.",
-      prompt: `Crie um devocional em português brasileiro baseado exclusivamente neste versículo da versão ARA: “${verse.text}” (${reference}). Produza titulo, reflexao meditativa, uma aplicacao prática e específica para hoje, e uma oracao breve. Não repita o versículo nos campos gerados.`,
+      prompt,
     });
+    let output = parseGeneratedDevotional(firstResult.text);
+    if (!output) {
+      const repairResult = await generateText({
+        model: gateway("google/gemini-3-flash-preview"),
+        system: "Você corrige respostas para JSON válido. Responda somente com JSON, sem markdown.",
+        prompt: `Converta o conteúdo abaixo em um objeto JSON válido com exatamente as chaves "titulo", "reflexao", "aplicacao" e "oracao", todas com texto em português. Preserve o conteúdo útil e não acrescente outras chaves.\n\n${firstResult.text}`,
+      });
+      output = parseGeneratedDevotional(repairResult.text);
+    }
+    if (!output) throw new Error("A IA não conseguiu preparar o devocional de hoje. Tente novamente em instantes.");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const saved = await supabaseAdmin
