@@ -24,7 +24,6 @@ import {
   ShieldCheck,
   Sparkles,
   Upload,
-  UserRound,
   Users,
 } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
@@ -33,6 +32,10 @@ import { lovable } from "@/integrations/lovable";
 import type { Tables } from "@/integrations/supabase/types";
 import logoAsset from "@/assets/ipf-logo.jpg.asset.json";
 import socialActionAsset from "@/assets/talentos-do-reino.jpg.asset.json";
+import councilRafaelAsset from "@/assets/conselho-rafael.jpg.asset.json";
+import councilAilsonAsset from "@/assets/conselho-ailson.jpg.asset.json";
+import councilOsvaldoAsset from "@/assets/conselho-osvaldo.jpg.asset.json";
+import councilGustavoAsset from "@/assets/conselho-gustavo.jpg.asset.json";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -347,13 +350,53 @@ function ContentView({ type, empty, content }: { type: string; empty: string; co
 function ContactView({ title, description }: { title: string; description: string }) { return <div className="mx-auto max-w-3xl px-5 py-6"><section className="rounded-3xl border bg-card p-6 shadow-pastoral"><span className="grid size-16 place-items-center rounded-2xl bg-secondary text-primary"><MessageCircle className="size-8" /></span><h2 className="mt-5 font-display text-3xl font-bold text-primary">{title}</h2><p className="mt-3 text-base leading-7 text-muted-foreground">{description}</p><Button asChild size="touch" className="mt-6 w-full"><a href="https://wa.me/5521987361216" target="_blank" rel="noreferrer"><MessageCircle />Abrir conversa no WhatsApp</a></Button><p className="mt-4 text-center text-sm font-semibold text-muted-foreground">Telefone: (21) 98736-1216</p></section></div>; }
 
 function CouncilView() {
+  const [message, setMessage] = useState("");
+  const [status, setStatus] = useState("");
   const members = [
-    { name: "Rev. Rafael Ribeiro", role: "Pastor · Presidente do Conselho", phone: "5521987361216" },
-    { name: "Presbítero Ailson", role: "Presbítero Regente", phone: "5521991571376" },
-    { name: "Presbítero Osvaldo", role: "Presbítero Regente", phone: "5521998461235" },
-    { name: "Presbítero Gustavo", role: "Presbítero Regente", phone: "5521989290880" },
+    { name: "Rev. Rafael Ribeiro", role: "Pastor · Presidente", phone: "5521987361216", photo: councilRafaelAsset.url },
+    { name: "Presb. Ailson", role: "Presbítero Regente", phone: "5521991571376", photo: councilAilsonAsset.url },
+    { name: "Presb. Osvaldo", role: "Presbítero Regente", phone: "5521998461235", photo: councilOsvaldoAsset.url },
+    { name: "Presb. Gustavo", role: "Presbítero Regente", phone: "5521989290880", photo: councilGustavoAsset.url },
   ];
-  return <div className="mx-auto max-w-3xl px-5 py-6"><p className="text-center text-sm leading-6 text-muted-foreground">Abra o WhatsApp para falar diretamente com cada membro do Conselho.</p><h2 className="mb-4 mt-7 font-display text-2xl font-bold text-primary">Membros do Conselho</h2><div className="space-y-4">{members.map((member) => <article key={member.name} className="flex items-center gap-4 rounded-3xl border bg-card p-4 shadow-sm"><div className="grid size-20 shrink-0 place-items-center rounded-full border-4 border-secondary bg-muted text-primary"><UserRound className="size-9" /></div><div className="min-w-0 flex-1"><h3 className="font-display text-xl font-bold leading-tight text-primary">{member.name}</h3><p className="mt-1 text-sm text-muted-foreground">{member.role}</p><Button asChild size="sm" className="mt-3 rounded-xl"><a href={`https://wa.me/${member.phone}`} target="_blank" rel="noreferrer" aria-label={`Conversar com ${member.name} no WhatsApp`}><MessageCircle />WhatsApp</a></Button></div></article>)}</div></div>;
+
+  function whatsappUrl(phone: string) {
+    const text = message.trim() ? `Mensagem ao Conselho da IPF: ${message.trim()}` : "Olá! Gostaria de falar com o Conselho da IPF.";
+    return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+  }
+
+  function sendToCouncil() {
+    if (!message.trim()) {
+      setStatus("Digite sua mensagem antes de enviar.");
+      return;
+    }
+    setStatus("");
+    for (const member of members) {
+      if (!window.confirm(`Enviar para ${member.name}?`)) continue;
+      window.open(whatsappUrl(member.phone), "_blank", "noopener,noreferrer");
+    }
+  }
+
+  return <div className="mx-auto max-w-3xl space-y-6 px-5 py-6">
+    <section className="rounded-3xl border bg-card p-6 text-center shadow-pastoral">
+      <span className="text-5xl" aria-hidden="true">🏛️</span>
+      <h2 className="mt-3 font-display text-3xl font-bold text-primary">Canal Direto e Reservado</h2>
+      <p className="mt-3 text-base leading-7 text-muted-foreground">Sua mensagem será enviada ao Pastor e aos Presbíteros do Conselho.</p>
+    </section>
+    <section className="space-y-3">
+      <Label htmlFor="council-message" className="text-sm font-bold uppercase tracking-[0.08em] text-primary">Sua mensagem ao Conselho</Label>
+      <Textarea id="council-message" value={message} onChange={(event) => setMessage(event.target.value)} maxLength={2000} rows={5} className="resize-none rounded-2xl bg-card text-base" placeholder="Escreva sua mensagem. Ela será enviada a todos os membros do Conselho..." />
+      {status && <Message text={status} danger />}
+      <Button type="button" size="touch" className="w-full rounded-2xl text-base" onClick={sendToCouncil}>🏛️ Enviar para Todo o Conselho</Button>
+      <p className="text-center text-sm leading-5 text-muted-foreground">O WhatsApp será aberto para cada membro, após sua confirmação.</p>
+    </section>
+    <section>
+      <h2 className="mb-4 font-display text-2xl font-bold text-primary">Membros do Conselho</h2>
+      <div className="space-y-4">{members.map((member) => <article key={member.name} className="flex items-center gap-4 rounded-3xl border bg-card p-4 shadow-sm">
+        <img src={member.photo} alt={`Foto de identificação de ${member.name}`} className="size-20 shrink-0 rounded-full border-4 border-secondary object-cover" />
+        <div className="min-w-0 flex-1"><h3 className="font-display text-xl font-bold leading-tight text-primary">{member.name}</h3><p className="mt-1 text-sm text-muted-foreground">{member.role}</p><Button asChild size="sm" className="mt-3 rounded-xl"><a href={whatsappUrl(member.phone)} target="_blank" rel="noreferrer" aria-label={`Conversar com ${member.name} no WhatsApp`}><MessageCircle />WhatsApp</a></Button></div>
+      </article>)}</div>
+    </section>
+  </div>;
 }
 
 function OfferingView() { return <div className="mx-auto max-w-3xl px-5 py-6"><section className="rounded-3xl bg-forest-deep p-6 text-primary-foreground shadow-pastoral"><Gift className="size-9" /><h2 className="mt-5 font-display text-3xl font-bold">Contribua com alegria</h2><p className="mt-3 text-base leading-7 text-primary-foreground/80">Dízimos e ofertas sustentam a missão, o cuidado e os projetos da igreja.</p></section><div className="mt-5 rounded-3xl border bg-card p-5"><h3 className="font-display text-2xl font-bold text-primary">Informações para contribuição</h3><p className="mt-3 text-base leading-7 text-muted-foreground">Para receber a chave PIX e os dados atualizados da igreja, fale diretamente com a tesouraria.</p><Button asChild size="touch" className="mt-5 w-full"><a href="https://wa.me/5521987361216?text=Olá!%20Gostaria%20dos%20dados%20para%20dízimos%20e%20ofertas." target="_blank" rel="noreferrer"><MessageCircle />Solicitar dados da tesouraria</a></Button></div></div>; }
